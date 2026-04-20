@@ -1,0 +1,9 @@
+videos/
+*.mp4
+*.venv*/
+__pycache__/
+*.pyc
+.env
+realworld_results/
+framework_benchmark/
+web_demo/thumbnails/*.jpg

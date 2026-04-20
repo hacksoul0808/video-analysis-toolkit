@@ -1,0 +1,4 @@
+curl_cffi>=0.5
+playwright>=1.40
+yt-dlp>=2024.1
+faster-whisper>=0.10
