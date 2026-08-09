@@ -39,9 +39,15 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 DEFAULT_OUTPUT = Path(__file__).parent / "videos"
+
+def _log(msg):
+    """带时间戳的日志输出"""
+    ts = time.strftime("%H:%M:%S")
+    print(f"[vdl {ts}] {msg}", flush=True)
 
 
 def detect_platform(url):
@@ -99,6 +105,7 @@ def download_douyin_builtin(url, output_dir):
     from curl_cffi import requests as cf_requests
     import json
 
+    _log("内置抖音下载器启动")
     session = cf_requests.Session(impersonate="chrome120")
 
     # 解析链接获取视频 ID
@@ -106,28 +113,35 @@ def download_douyin_builtin(url, output_dir):
     m = re.search(r'/video/(\d+)', url)
     if m:
         video_id = m.group(1)
+        _log(f"从 URL 提取 video_id={video_id}")
     else:
+        _log("URL 中无 video_id, 跟随重定向...")
         resp = session.get(url, timeout=15, allow_redirects=True)
         final_url = str(resp.url)
+        _log(f"重定向到: {final_url}")
         m = re.search(r'/video/(\d+)', final_url)
         if m:
             video_id = m.group(1)
 
     if not video_id:
+        _log("ERROR: 无法从链接中提取视频 ID")
         print("无法从链接中提取视频 ID")
         return False
 
     # 获取视频信息
     share_url = f"https://www.iesdouyin.com/share/video/{video_id}/"
+    _log(f"获取视频信息: {share_url[:60]}...")
     resp = session.get(share_url, timeout=15, headers={
         "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15"
     })
 
     m = re.search(r'video_id=([a-zA-Z0-9_]+)', resp.text)
     if not m:
+        _log("ERROR: 无法提取视频内部 ID")
         print("无法提取视频内部 ID")
         return False
     internal_id = m.group(1)
+    _log(f"内部 video_id={internal_id}")
 
     # 获取标题
     title = f"douyin_{video_id}"
@@ -135,25 +149,42 @@ def download_douyin_builtin(url, output_dir):
     if m:
         t = m.group(1)
         title = t.encode().decode('unicode_escape') if '\\u' in t else t
+        _log(f"标题: {title[:60]}")
 
     # 下载无水印视频
     play_url = f"https://aweme.snssdk.com/aweme/v1/play/?video_id={internal_id}&ratio=720p&line=0"
     print(f"标题: {title[:60]}")
-    print(f"下载无水印视频...")
+    _log(f"开始流式下载: {play_url[:80]}...")
 
-    resp = session.get(play_url, timeout=120, allow_redirects=True)
+    # Stream download with progress reporting
+    resp = session.get(play_url, stream=True, timeout=300, allow_redirects=True)
     if resp.status_code != 200 or 'video' not in resp.headers.get('content-type', ''):
+        _log(f"ERROR: 下载请求失败, status={resp.status_code}, content-type={resp.headers.get('content-type','')}")
         print(f"下载失败: {resp.status_code}")
         return False
+
+    total = int(resp.headers.get('content-length', 0))
+    _log(f"文件大小: {total / 1024 / 1024:.1f} MB")
+    downloaded = 0
+    last_pct = -1
 
     safe_title = re.sub(r'[^\w\u4e00-\u9fff\-]', '_', title)[:50].strip('_')
     filename = f"{safe_title}_{video_id}.mp4"
     filepath = output_dir / filename
 
     with open(filepath, "wb") as f:
-        f.write(resp.content)
+        for chunk in resp.iter_content(chunk_size=65536):
+            if chunk:
+                f.write(chunk)
+                downloaded += len(chunk)
+                if total > 0:
+                    pct = int(downloaded / total * 100)
+                    if pct != last_pct:
+                        print(f"PROGRESS:{pct}")
+                        last_pct = pct
 
-    size_mb = len(resp.content) / 1024 / 1024
+    size_mb = downloaded / 1024 / 1024
+    _log(f"下载完成: {filepath.name} ({size_mb:.1f} MB)")
     print(f"下载完成: {filepath} ({size_mb:.1f} MB)")
     return True
 
@@ -164,6 +195,7 @@ def download_ytdlp(url, output_dir, list_formats=False):
 
     if list_formats:
         cmd += ["-F", url]
+        _log(f"列出格式: {url[:60]}...")
         subprocess.run(cmd)
         return True
 
@@ -174,9 +206,26 @@ def download_ytdlp(url, output_dir, list_formats=False):
         url,
     ]
 
-    print(f"执行: {' '.join(cmd[:6])}...")
-    result = subprocess.run(cmd)
-    return result.returncode == 0
+    _log(f"yt-dlp 启动: {' '.join(cmd[:6])}...")
+    t0 = time.time()
+
+    # 流式执行, 实时输出进度
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, bufsize=1
+    )
+
+    for line in iter(process.stdout.readline, ''):
+        line = line.rstrip('\n').rstrip('\r')
+        if line:
+            print(line, flush=True)
+
+    process.wait()
+    elapsed = time.time() - t0
+    rc = process.returncode
+    _log(f"yt-dlp 退出, returncode={rc}, 耗时 {elapsed:.1f}s")
+    return rc == 0
 
 
 def download_lux(url, output_dir, list_formats=False):
@@ -185,13 +234,30 @@ def download_lux(url, output_dir, list_formats=False):
 
     if list_formats:
         cmd += ["-i", url]
+        _log(f"lux 列出格式: {url[:60]}...")
         subprocess.run(cmd)
         return True
 
     cmd += ["-o", str(output_dir), url]
-    print(f"执行: {' '.join(cmd)}")
-    result = subprocess.run(cmd)
-    return result.returncode == 0
+    _log(f"lux 启动: {' '.join(cmd)}")
+    t0 = time.time()
+
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, bufsize=1
+    )
+
+    for line in iter(process.stdout.readline, ''):
+        line = line.rstrip('\n').rstrip('\r')
+        if line:
+            print(line, flush=True)
+
+    process.wait()
+    elapsed = time.time() - t0
+    rc = process.returncode
+    _log(f"lux 退出, returncode={rc}, 耗时 {elapsed:.1f}s")
+    return rc == 0
 
 
 def download_gallerydl(url, output_dir):
@@ -215,6 +281,7 @@ def download_youget(url, output_dir):
 
 
 def main():
+    _log(f"vdl.py 启动, sys.argv={sys.argv}")
     parser = argparse.ArgumentParser(
         description="vdl - 通用视频下载工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -231,15 +298,16 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     url = args.url.strip()
+    _log(f"开始检测平台... URL={url[:80]}...")
     platform = detect_platform(url)
     engine = args.engine or choose_engine(platform)
 
     print(f"平台: {platform}")
     print(f"引擎: {engine}")
     print(f"输出: {output_dir}")
-    print()
 
     if not engine:
+        _log("ERROR: 没有找到可用的下载引擎！")
         print("没有找到可用的下载引擎！请安装 yt-dlp:")
         print("  pip install yt-dlp")
         sys.exit(1)
@@ -253,6 +321,8 @@ def main():
         return
 
     # 下载
+    _log(f"开始下载, 引擎={engine}")
+    t0 = time.time()
     success = False
     if engine == "builtin":
         success = download_douyin_builtin(url, output_dir)
@@ -266,12 +336,16 @@ def main():
         success = download_youget(url, output_dir)
 
     if not success and engine != "yt-dlp":
+        _log(f"{engine} 失败, 尝试 yt-dlp 兜底...")
         print(f"\n{engine} 下载失败，尝试 yt-dlp 兜底...")
         success = download_ytdlp(url, output_dir)
 
+    elapsed = time.time() - t0
     if success:
+        _log(f"下载完成, 耗时 {elapsed:.1f}s")
         print("\n✓ 下载完成！")
     else:
+        _log(f"下载失败, 耗时 {elapsed:.1f}s")
         print("\n✗ 下载失败")
         sys.exit(1)
 

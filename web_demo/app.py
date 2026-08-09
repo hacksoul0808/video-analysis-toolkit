@@ -297,6 +297,14 @@ a {{ color: #7c9ff5; text-decoration: none; }}
 .transcript-box {{ max-height: 400px; overflow-y: auto; font-size: 14px; line-height: 1.8; color: #ccc; }}
 .transcript-box::-webkit-scrollbar {{ width: 6px; }}
 .transcript-box::-webkit-scrollbar-thumb {{ background: #444; border-radius: 3px; }}
+
+/* Workflow Bar */
+.workflow-bar {{ display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }}
+.workflow-step {{ background: #2a2a4a; border-radius: 8px; padding: 8px 14px; font-size: 12px; color: #888; display: flex; align-items: center; gap: 6px; }}
+.workflow-step.active {{ background: #7c9ff533; color: #7c9ff5; border: 1px solid #7c9ff5; }}
+.workflow-step.done {{ background: #4ecdc433; color: #4ecdc4; border: 1px solid #4ecdc4; }}
+.workflow-step .step-icon {{ font-size: 14px; }}
+.workflow-step .step-label {{ font-weight: 500; }}
 .seg {{ padding: 4px 8px; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: flex; gap: 12px; }}
 .seg:hover {{ background: #2a2a4a; }}
 .seg.active {{ background: #e9456033; border-left: 3px solid #e94560; }}
@@ -494,10 +502,11 @@ a {{ color: #7c9ff5; text-decoration: none; }}
 <div class="modal" id="videoModal">
     <div class="modal-close" onclick="closeModal()">&times;</div>
     <div class="modal-content">
-        <video class="modal-video" id="modalVideo" controls></video>
+        <video class="modal-video" id="modalVideo" controls autoplay playsinline></video>
         <div class="modal-info">
             <h2 id="modalTitle"></h2>
             <div class="modal-stats" id="modalStats"></div>
+            <div class="workflow-bar" id="workflowBar"></div>
             <div class="modal-tabs">
                 <button class="tab-btn active" onclick="switchTab('desc')">简介</button>
                 <button class="tab-btn" onclick="switchTab('transcript')">完整脚本</button>
@@ -533,16 +542,38 @@ function showVideo(id) {{
     const modal = document.getElementById('videoModal');
     const video = document.getElementById('modalVideo');
 
-    if (videoFiles[id]) {{
+    // Reset video
+    video.pause();
+    video.src = '';
+
+    const hasFile = !!videoFiles[id];
+    const hasTranscript = !!transcripts[id];
+    const hasAnalysis = !!scriptAnalysis[id];
+
+    if (hasFile) {{
         video.src = '/video/' + id;
         video.style.display = 'block';
+        // 自动播放
+        video.onloadedmetadata = () => video.play().catch(() => {{}});
     }} else {{
         video.style.display = 'none';
     }}
 
     document.getElementById('modalTitle').textContent = v.desc.split('\\n')[0];
-    document.getElementById('modalDesc').textContent = v.desc;
 
+    // Workflow status bar
+    const steps = [
+        {{ key: 'download', label: '下载视频', icon: hasFile ? '✅' : '⬜', done: hasFile }},
+        {{ key: 'transcript', label: '语音转写', icon: hasFile && hasTranscript ? '✅' : (hasFile ? '⬜' : '⬜'), done: hasFile && hasTranscript, disabled: !hasFile }},
+        {{ key: 'analysis', label: '脚本分析', icon: hasFile && hasTranscript && hasAnalysis ? '✅' : (hasFile && hasTranscript ? '⬜' : '⬜'), done: hasFile && hasTranscript && hasAnalysis, disabled: !hasFile || !hasTranscript }},
+    ];
+    document.getElementById('workflowBar').innerHTML = steps.map(s => {{
+        let cls = s.done ? 'done' : (!s.disabled ? 'active' : '');
+        let icon = s.icon;
+        return `<div class="workflow-step ${{cls}}"><span class="step-icon">${{icon}}</span><span class="step-label">${{s.label}}</span></div>`;
+    }}).join('');
+
+    // Stats
     const saveRate = (v.collect_count / Math.max(v.digg_count, 1) * 100).toFixed(0);
     const shareRate = (v.share_count / Math.max(v.digg_count, 1) * 100).toFixed(0);
     const dur = v.duration_sec ? Math.floor(v.duration_sec/60) + ':' + String(Math.floor(v.duration_sec%60)).padStart(2,'0') : '?';
@@ -559,9 +590,12 @@ function showVideo(id) {{
         <div class="modal-stat"><div class="val">${{date}}</div><div class="lbl">发布</div></div>
     `;
 
-    // Populate transcript tab
-    const t = transcripts[id];
+    // Description tab
+    document.getElementById('modalDesc').textContent = v.desc;
+
+    // Transcript tab
     const transcriptBox = document.getElementById('transcriptContent');
+    const t = transcripts[id];
     if (t && t.segments) {{
         transcriptBox.innerHTML = t.segments.map((s, i) => {{
             const mm = Math.floor(s.start / 60);
@@ -569,13 +603,15 @@ function showVideo(id) {{
             const timeStr = mm + ':' + String(ss).padStart(2, '0');
             return `<div class="seg" data-time="${{s.start}}" id="seg-${{i}}"><span class="seg-time" onclick="seekTo(${{s.start}})">${{timeStr}}</span><span class="seg-text">${{s.text}}</span></div>`;
         }}).join('');
+    }} else if (!hasFile) {{
+        transcriptBox.innerHTML = '<p style="color:#666; padding:20px; text-align:center;">⬆ 请先下载视频</p>';
     }} else {{
-        transcriptBox.innerHTML = '<p style="color:#666">暂无脚本数据</p>';
+        transcriptBox.innerHTML = '<p style="color:#888; padding:20px; text-align:center;">待转写 ⬜<br><br><code style="background:#2a2a4a; padding:6px 12px; border-radius:4px; font-size:12px; color:#4ecdc4;">python transcribe_videos.py --input videos/lau_all/ --output web_demo/all_transcripts.json</code><br><br><span style="font-size:11px; color:#666;">运行上述命令后刷新页面</span></p>';
     }}
 
-    // Populate analysis tab
-    const a = scriptAnalysis[id];
+    // Analysis tab
     const analysisBox = document.getElementById('analysisContent');
+    const a = scriptAnalysis[id];
     if (a) {{
         const cpmClass = a.chars_per_min >= 295 && a.chars_per_min <= 315 ? 'good' : (a.chars_per_min > 320 ? 'bad' : 'warn');
         const kwTotal = a.ai_keywords + a.emotion_keywords + a.tech_keywords;
@@ -596,8 +632,10 @@ function showVideo(id) {{
             <h4>结尾收束 (最后30秒)</h4>
             <div class="hook-box">${{a.close_text || '无数据'}}</div>
         `;
+    }} else if (!hasTranscript) {{
+        analysisBox.innerHTML = '<p style="color:#666; padding:20px; text-align:center;">⬆ 请先完成语音转写</p>';
     }} else {{
-        analysisBox.innerHTML = '<p style="color:#666">暂无分析数据</p>';
+        analysisBox.innerHTML = '<p style="color:#888; padding:20px; text-align:center;">待分析 ⬜<br><br><code style="background:#2a2a4a; padding:6px 12px; border-radius:4px; font-size:12px; color:#4ecdc4;">python analyze_scripts.py</code><br><br><span style="font-size:11px; color:#666;">运行上述命令后刷新页面</span></p>';
     }}
 
     // Reset to first tab
@@ -605,7 +643,7 @@ function showVideo(id) {{
     modal.classList.add('show');
 
     // Sync transcript highlight with video playback
-    if (videoFiles[id]) {{
+    if (hasFile) {{
         video.ontimeupdate = () => {{
             const ct = video.currentTime;
             const segs = document.querySelectorAll('.seg');
@@ -616,8 +654,6 @@ function showVideo(id) {{
                     if (!s.classList.contains('active')) {{
                         segs.forEach(x => x.classList.remove('active'));
                         s.classList.add('active');
-                        // Auto scroll transcript
-                        const box = document.getElementById('transcriptContent');
                         const tabT = document.getElementById('tabTranscript');
                         if (tabT.style.display !== 'none') {{
                             s.scrollIntoView({{ block: 'center', behavior: 'smooth' }});
@@ -642,7 +678,12 @@ function switchTab(tab) {{
     document.querySelectorAll('.tab-content').forEach(t => {{ t.style.display = 'none'; t.classList.remove('active'); }});
     const tabEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
     if (tabEl) {{ tabEl.style.display = 'block'; tabEl.classList.add('active'); }}
-    event.target.classList.add('active');
+    // Activate matching button
+    document.querySelectorAll('.tab-btn').forEach(b => {{
+        if (b.textContent.trim().startsWith(tab === 'desc' ? '简介' : tab === 'transcript' ? '完整脚本' : '脚本分析')) {{
+            b.classList.add('active');
+        }}
+    }});
 }}
 
 function closeModal() {{
@@ -679,7 +720,11 @@ function sortBy(key) {{
     }});
     cards.forEach(c => grid.appendChild(c));
     document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+    // Find and activate the clicked button by matching sort key text
+    const keyLabels = {{ date: '按时间', likes: '按点赞', saves: '按收藏率', shares: '按分享率', duration: '按时长' }};
+    document.querySelectorAll('.controls button').forEach(b => {{
+        if (b.textContent.trim() === keyLabels[key]) b.classList.add('active');
+    }});
 }}
 
 // Charts

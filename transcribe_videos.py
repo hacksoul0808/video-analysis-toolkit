@@ -40,7 +40,7 @@ def main():
     parser = argparse.ArgumentParser(description="批量视频语音转写")
     parser.add_argument("--input", "-i", required=True, help="视频目录")
     parser.add_argument("--output", "-o", default="all_transcripts.json", help="输出 JSON 文件")
-    parser.add_argument("--model", default="large-v3", help="Whisper 模型 (default: large-v3)")
+    parser.add_argument("--model", default=str(Path(__file__).parent / "Model"), help="Whisper 模型路径")
     parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"], help="设备")
     parser.add_argument("--compute-type", default="float16", help="计算精度 (default: float16)")
     args = parser.parse_args()

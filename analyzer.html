@@ -122,6 +122,7 @@ h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
 .btn-danger:hover { background:var(--color-danger-dim); }
 
 .btn-sm { padding:6px 14px; font-size:.8rem; border-radius:var(--radius-sm); }
+.btn-xs { padding:3px 8px; font-size:.72rem; border-radius:3px; }
 .btn-icon { width:36px; height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); }
 
 /* ── Tags ── */
@@ -354,6 +355,38 @@ h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* ── Skeleton Shimmer ── */
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skeleton-card{background:var(--color-surface);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--color-border)}
+.skeleton-media{height:160px;background:linear-gradient(90deg,var(--color-surface) 0%,var(--color-border-dim) 40%,var(--color-surface) 80%);background-size:800px 100%;animation:shimmer 1.5s infinite linear}
+.skeleton-body{padding:14px}
+.skeleton-line{height:13px;margin-bottom:10px;border-radius:4px;background:linear-gradient(90deg,var(--color-surface) 0%,var(--color-border-dim) 40%,var(--color-surface) 80%);background-size:800px 100%;animation:shimmer 1.5s infinite linear}
+.skeleton-line.short{width:60%}
+.skeleton-line.mid{width:80%}
+
+/* ── Error State ── */
+.error-state{text-align:center;padding:40px 20px;color:var(--color-text-dim)}
+.error-state .err-icon{font-size:2rem;margin-bottom:12px;display:block}
+.error-state .err-msg{font-size:.88rem;line-height:1.7;margin-bottom:16px}
+
+/* ── Error alert steps ── */
+.err-step {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 12px; border-radius:var(--radius-sm);
+  font-size:.84rem; border:1px solid var(--color-border);
+  background:var(--color-surface);
+}
+.err-step.ok { border-color:rgba(52,211,153,.2); }
+.err-step.fail { border-color:var(--color-danger-dim); background:var(--color-danger-dim); }
+.err-step .dot {
+  width:20px; height:20px; border-radius:50%; display:flex;
+  align-items:center; justify-content:center; font-size:.7rem; flex-shrink:0;
+}
+.err-step.ok .dot { background:var(--color-success); color:#042f2e; }
+.err-step.fail .dot { background:var(--color-danger); color:#fff; }
+.err-step .step-name { flex:1; }
+.err-step .step-tag { font-size:.68rem; color:var(--color-text-dim); }
+
 /* ── Detail Modal ── */
 .video-stage { background:#000; aspect-ratio:16/9; }
 .video-stage video { width:100%; height:100%; object-fit:contain; }
@@ -369,6 +402,93 @@ h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
 .detail-tab:hover { color:var(--color-text); background:var(--color-surface); }
 .detail-tab.active { background:var(--color-accent-dim); color:var(--color-accent); }
 .detail-panel { padding:24px; max-height:480px; overflow-y:auto; }
+
+/* ── Workflow Bar ── */
+.detail-workflow { display:flex; gap:8px; padding:0 24px 14px; flex-wrap:wrap; }
+.wf-step {
+  display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:100px;
+  font-size:.76rem; font-weight:500; transition:all var(--transition-fast);
+  background:var(--color-surface); border:1px solid var(--color-border); color:var(--color-text-dim);
+}
+.wf-step.done { background:rgba(52,211,153,.12); border-color:var(--color-success); color:var(--color-success); }
+.wf-step.active { background:var(--color-accent-dim); border-color:var(--color-accent); color:var(--color-accent); cursor:pointer; }
+.wf-step.active:hover { box-shadow:0 0 10px var(--color-accent-glow); }
+.wf-step.pending { opacity:.5; }
+.wf-step.error { background:var(--color-danger-dim); border-color:var(--color-danger); color:var(--color-danger); }
+.wf-step .wf-icon { font-size:.85rem; }
+
+/* ── Action Bar ── */
+.detail-actions { display:flex; gap:8px; padding:0 24px 18px; flex-wrap:wrap; }
+.detail-actions .btn:disabled { opacity:.35; cursor:not-allowed; pointer-events:none; }
+
+/* ── Card Delete Button ── */
+.card-del {
+  position:absolute; top:8px; right:8px; z-index:5;
+  width:28px; height:28px; border-radius:50%; border:none;
+  background:rgba(0,0,0,.7); color:var(--color-text-dim);
+  font-size:.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity var(--transition-fast);
+  backdrop-filter:blur(4px);
+}
+.video-card:hover .card-del { opacity:1; }
+.card-del:hover { background:var(--color-danger); color:#fff; }
+
+/* ── Inline Edit ── */
+.inline-edit {
+  background:transparent; border:none; color:var(--color-text);
+  font-family:var(--font-display); font-size:1.1rem; font-weight:600;
+  width:100%; outline:none; border-bottom:2px dashed var(--color-border);
+  padding:0 0 4px; line-height:1.35;
+}
+.inline-edit:focus { border-bottom-color:var(--color-accent); }
+
+.tag-row-editable { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+.tag-edit-chip {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 10px; border-radius:4px; font-size:.75rem; font-weight:500;
+  background:var(--color-accent-dim); color:var(--color-accent);
+}
+.tag-edit-chip .tag-x { cursor:pointer; font-size:.85rem; opacity:.6; }
+.tag-edit-chip .tag-x:hover { opacity:1; color:var(--color-danger); }
+.tag-add-input {
+  background:var(--color-surface); border:1px dashed var(--color-border); border-radius:4px;
+  color:var(--color-text); font-size:.75rem; padding:4px 10px; outline:none; min-width:80px;
+  font-family:var(--font-body);
+}
+.tag-add-input:focus { border-color:var(--color-accent); }
+
+/* ── Batch Mode ── */
+.batch-textarea {
+  width:100%; min-height:120px; background:var(--color-surface);
+  border:1px solid var(--color-border); border-radius:var(--radius-md);
+  color:var(--color-text); font-family:var(--font-body); font-size:.84rem;
+  padding:12px; outline:none; resize:vertical; line-height:1.6;
+}
+.batch-textarea:focus { border-color:var(--color-accent); }
+.batch-toggle-row { display:flex; gap:6px; margin-bottom:14px; }
+.batch-toggle-row .btn { flex:1; }
+.batch-url-status { font-size:.78rem; color:var(--color-text-dim); margin-top:4px; text-align:right; }
+
+/* ── Multi-Select ── */
+.multi-select-bar { display:none; align-items:center; gap:10px; padding:8px 0; margin-bottom:8px; }
+.multi-select-bar.show { display:flex; }
+.card-checkbox { position:absolute; top:8px; left:8px; z-index:5; width:20px; height:20px; cursor:pointer; accent-color:var(--color-accent); opacity:0; transition:opacity .2s; }
+.video-card.select-mode .card-checkbox { opacity:1; }
+.video-card.select-mode { cursor:pointer; }
+.video-card.select-mode:hover { border-color:var(--color-accent); }
+.video-card.selected { border-color:var(--color-accent); box-shadow:0 0 12px var(--color-accent-glow); }
+
+/* ── Search ── */
+.search-bar { display:flex; gap:8px; margin-bottom:16px; align-items:center; }
+.search-input {
+  flex:1; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-md);
+  color:var(--color-text); font-size:.84rem; padding:8px 14px; outline:none;
+}
+.search-input:focus { border-color:var(--color-accent); }
+.search-input::placeholder { color:var(--color-text-dim); }
+.search-clear { cursor:pointer; color:var(--color-text-dim); font-size:1rem; padding:4px 8px; display:none; }
+.search-clear.show { display:block; }
+.search-clear:hover { color:var(--color-danger); }
 
 /* ── Transcript ── */
 .transcript-seg {
@@ -502,6 +622,15 @@ h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
       <button class="btn btn-ghost btn-sm" onclick="sortBy('likes',this)">按点赞</button>
       <button class="btn btn-ghost btn-sm" onclick="sortBy('duration',this)">按时长</button>
     </div>
+    <div class="search-bar">
+      <input class="search-input" id="search-input" placeholder="搜索标题或转写内容..." oninput="onSearchInput()">
+      <span class="search-clear" id="search-clear" onclick="clearSearch()">&times;</span>
+    </div>
+    <div class="multi-select-bar" id="multi-bar">
+      <span id="select-count" style="font-size:.82rem;color:var(--color-text-dim)">已选 0 个</span>
+      <button class="btn btn-primary btn-sm" onclick="batchAnalyze()" id="batch-analyze-btn" disabled>批量AI分析</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearSelection()">取消选择</button>
+    </div>
     <div class="video-grid" id="video-grid"></div>
   </section>
 
@@ -528,9 +657,24 @@ h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
       <button class="modal-close" onclick="closeAddModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="field">
+      <div class="batch-toggle-row" id="add-mode-toggle">
+        <button class="btn btn-ghost btn-sm active" onclick="switchAddMode('single',this)">单个链接</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchAddMode('batch',this)">批量链接</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchAddMode('import',this)">导入本地</button>
+      </div>
+      <div class="field" id="single-url-field">
         <label class="field-label">视频链接</label>
         <input class="field-input" id="add-url" placeholder="粘贴链接（支持抖音 / YouTube / B站...）" onkeydown="if(event.key==='Enter')startPipeline()">
+      </div>
+      <div class="field" id="batch-url-field" style="display:none">
+        <label class="field-label">视频链接（每行一个）</label>
+        <textarea class="batch-textarea" id="batch-urls" placeholder="https://v.douyin.com/xxx/&#10;https://www.bilibili.com/video/xxx&#10;https://www.youtube.com/watch?v=xxx" oninput="updateBatchCount()"></textarea>
+        <div class="batch-url-status" id="batch-url-count">0 个链接</div>
+      </div>
+      <div class="field" id="import-field" style="display:none">
+        <label class="field-label">可导入的视频（videos/ 目录中）</label>
+        <div id="import-list" style="max-height:250px;overflow-y:auto;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)"></div>
+        <div style="font-size:.76rem;color:var(--color-text-dim);margin-top:6px">通过 vdl.py 命令行下载的视频显示在此处</div>
       </div>
       <div class="field">
         <label class="field-label">分析模式</label>
@@ -568,12 +712,14 @@ h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
       <button class="modal-close" onclick="closeDetailModal()">&times;</button>
     </div>
     <div class="video-stage" id="detail-stage">
-      <video id="detail-video" controls></video>
+      <video id="detail-video" controls autoplay playsinline></video>
     </div>
     <div class="detail-meta">
       <h2 id="detail-title"></h2>
       <div class="detail-meta-tags" id="detail-tag-row"></div>
     </div>
+    <div class="detail-workflow" id="detail-workflow"></div>
+    <div class="detail-actions" id="detail-actions"></div>
     <div class="detail-tabs">
       <button class="detail-tab active" onclick="switchDetailTab('transcript',this)">转写文本</button>
       <button class="detail-tab" onclick="switchDetailTab('metrics',this)">脚本指标</button>
@@ -583,13 +729,59 @@ h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
   </div>
 </div>
 
+<!-- ═══════════════════════ Modal: Error Alert ═══════════════════════ -->
+<div class="modal-backdrop" id="error-backdrop">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <h3 style="color:var(--color-danger)">处理失败</h3>
+      <button class="modal-close" onclick="closeErrorModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="error-step-list" style="margin-bottom:16px"></div>
+      <div id="error-detail" style="padding:14px;background:var(--color-surface);border-radius:var(--radius-md);border:1px solid var(--color-border);font-size:.84rem;color:var(--color-text-muted);line-height:1.6;max-height:200px;overflow-y:auto;display:none"></div>
+      <button class="btn btn-primary btn-sm" onclick="closeErrorModal()" style="margin-top:14px;width:100%">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ Modal: Confirm Delete ═══════════════════════ -->
+<div class="modal-backdrop" id="confirm-backdrop">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h3>确认删除</h3>
+      <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-msg" style="font-size:.88rem;color:var(--color-text-muted);margin-bottom:18px;line-height:1.6"></p>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="closeConfirmModal()" style="flex:1">取消</button>
+        <button class="btn btn-danger btn-sm" id="confirm-ok-btn" style="flex:1">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ Modal: Tag Manager ═══════════════════════ -->
+<div class="modal-backdrop" id="tag-backdrop">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <h3>标签管理</h3>
+      <button class="modal-close" onclick="closeTagModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="tag-list-content" style="max-height:400px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════
 // State
 // ═══════════════════════════════════════
 const S = {
-  view:'library', tag:null, sort:'created_at',
-  videos:[], tags:[], currentId:null, mode:'full', locked:false
+  view:'library', tag:null, sort:'created_at', searchQuery:'',
+  videos:[], tags:[], currentId:null, mode:'full', locked:false,
+  selectMode:false, selected:{}, addMode:'single'
 };
 
 // ═══════════════════════════════════════
@@ -598,7 +790,7 @@ const S = {
 const $ = {
   async get(u) { const r=await fetch(u); if(!r.ok) throw new Error((await r.json().catch(()=>({error:r.statusText}))).error); return r.json(); },
   async post(u,d) { const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}); if(!r.ok) throw new Error((await r.json().catch(()=>({error:r.statusText}))).error); return r.json(); },
-  library: (t,s) => $.get('/api/library?sort='+s+(t?'&tag='+encodeURIComponent(t):'')),
+  library: (t,s) => $.get('/api/library?sort='+s+(t?'&tag='+encodeURIComponent(t):'')+(S.searchQuery?'&q='+encodeURIComponent(S.searchQuery):'')),
   stats: () => $.get('/api/stats'),
   methodology: (t) => $.get('/api/methodology'+(t?'?tag='+encodeURIComponent(t):'')),
   process: (d) => $.post('/api/process',d),
@@ -631,21 +823,127 @@ function switchView(v) {
 }
 
 // ═══════════════════════════════════════
-// Library
+// Tag Management
 // ═══════════════════════════════════════
+async function openTagModal() {
+  document.getElementById('tag-backdrop').classList.add('open');
+  await refreshTagList();
+}
+function closeTagModal() { document.getElementById('tag-backdrop').classList.remove('open'); }
+
+async function refreshTagList() {
+  const c=document.getElementById('tag-list-content');
+  c.innerHTML='<div style="text-align:center;padding:30px 0"><span class="spinner" style="display:inline-block;width:16px;height:16px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span></div>';
+  try {
+    const tags=await $.get('/api/tags');
+    const items=tags.tags||[];
+    if(!items.length) { c.innerHTML='<p style="color:var(--color-text-dim);text-align:center;padding:20px">暂无标签</p>'; return; }
+    let h='';
+    for(const [name,count] of items) {
+      h+='<div class="tag-manage-row" style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--color-border)">';
+      h+='<span style="font-size:.84rem"><span class="card-tag" style="padding:4px 10px">'+esc(name)+'</span> <span style="color:var(--color-text-dim);font-size:.78rem">('+count+' 个视频)</span></span>';
+      h+='<span style="display:flex;gap:4px">';
+      h+='<button class="btn btn-ghost btn-xs" onclick="renameTagPrompt(\''+esc(name)+'\')" title="重命名">\u270F</button>';
+      h+='<button class="btn btn-ghost btn-xs" onclick="deleteTagPrompt(\''+esc(name)+'\',\''+count+'\')" title="删除" style="color:var(--color-danger)">\u2716</button>';
+      h+='</span></div>';
+    }
+    c.innerHTML=h;
+  } catch(e) {
+    c.innerHTML='<div class="error-state"><span class="err-icon">&#9888;</span><div class="err-msg">'+esc(e.message)+'</div><button class="btn btn-primary btn-sm" onclick="refreshTagList()">重试</button></div>';
+  }
+}
+
+function renameTagPrompt(oldName) {
+  const n=prompt('将「'+oldName+'」重命名为：',oldName);
+  if(!n||n.trim()===oldName||!n.trim()) return;
+  renameTag(oldName, n.trim());
+}
+
+async function renameTag(oldName, newName) {
+  try {
+    await $.post('/api/tags',{action:'rename',tag:oldName,new_tag:newName});
+    toast('已重命名: '+oldName+' → '+newName,false);
+    refreshTagList(); loadLibrary();
+  } catch(e) { toast('重命名失败: '+e.message,true); }
+}
+
+function deleteTagPrompt(name, count) {
+  showConfirm('删除标签「'+name+'」将从所有 '+count+' 个视频中移除此标签。确定？', async ()=>{
+    try {
+      await $.post('/api/tags',{action:'delete',tag:name});
+      toast('已删除标签: '+name,false);
+      refreshTagList(); loadLibrary();
+    } catch(e) { toast('删除失败: '+e.message,true); }
+  });
+}
+
+// ── Add/remove tags from detail modal ──
+function addTagToVideo() {
+  const v=S.videos.find(x=>x.id===S.currentId);
+  if(!v) return;
+  const input=document.getElementById('detail-tag-input');
+  if(!input) return;
+  const tag=input.value.trim();
+  if(!tag) return;
+  if(!v.tags) v.tags=[];
+  if(v.tags.includes(tag)) { toast('标签已存在',true); return; }
+  v.tags.push(tag);
+  input.value='';
+  renderDetailTags(v);
+  $.post('/api/save',{id:S.currentId,tags:v.tags}).catch(()=>{});
+  loadLibrary();
+}
+
+function removeTagFromVideo(tag) {
+  const v=S.videos.find(x=>x.id===S.currentId);
+  if(!v) return;
+  v.tags=v.tags.filter(t=>t!==tag);
+  renderDetailTags(v);
+  $.post('/api/save',{id:S.currentId,tags:v.tags}).catch(()=>{});
+  loadLibrary();
+}
+
+function renderDetailTags(v) {
+  const row=document.getElementById('detail-tag-row');
+  const tags=v.tags||[];
+  let h=tags.map(t=>'<span class="tag-edit-chip">'+esc(t)+'<span class="tag-x" onclick="event.stopPropagation();removeTagFromVideo(\''+esc(t)+'\')">&times;</span></span>').join('');
+  h+='<input class="tag-add-input" id="detail-tag-input" placeholder="+ 添加标签" onchange="addTagToVideo()" onkeydown="if(event.key===\'Enter\'){addTagToVideo();event.preventDefault()}">';
+  h+=' <span style="font-family:var(--font-display);font-size:.75rem;color:var(--color-accent);margin-left:4px">'+(v.viral_score||'--')+'</span>';
+  row.innerHTML=h;
+}
+function renderSkeletons() {
+  let h='';
+  for(let i=0;i<6;i++) {
+    h+='<div class="skeleton-card"><div class="skeleton-media"></div><div class="skeleton-body"><div class="skeleton-line mid"></div><div class="skeleton-line short"></div></div></div>';
+  }
+  document.getElementById('video-grid').innerHTML=h;
+}
+
+function renderLoadError(id,msg,retryFn) {
+  document.getElementById(id).innerHTML=
+    '<div class="error-state"><span class="err-icon">&#9888;</span>'+
+    '<div class="err-msg">'+esc(msg)+'</div>'+
+    '<button class="btn btn-primary btn-sm" onclick="'+retryFn+'">\u{1F504} 重试</button></div>';
+}
+
 async function loadLibrary() {
+  const grid=document.getElementById('video-grid');
+  if(!S.videos.length) renderSkeletons();
   try {
     const d=await $.library(S.tag,S.sort);
     S.videos=d.videos||[]; S.tags=d.tags||[];
     document.getElementById('lib-heading').textContent=S.tag?'筛选: '+S.tag:'视频库';
     renderTags(); renderGrid();
-  } catch(e) { toast(e.message,true); }
+  } catch(e) {
+    renderLoadError('video-grid','加载视频库失败:<br>'+e.message,'loadLibrary()');
+  }
 }
 
 function renderTags() {
   const c=document.getElementById('tag-cloud');
   let h='<button class="tag-chip'+(!S.tag?' active':'')+'" onclick="filterTag(null)">全部 ('+S.videos.length+')</button>';
   for(const [n,k] of S.tags.slice(0,14)) h+='<button class="tag-chip'+(S.tag===n?' active':'')+'" onclick="filterTag(\''+n+'\')">'+n+' ('+k+')</button>';
+  h+='<button class="tag-chip" style="border:1px dashed var(--color-border);color:var(--color-text-dim);opacity:.7" onclick="openTagModal()">+ 管理标签</button>';
   c.innerHTML=h;
 }
 
@@ -666,16 +964,17 @@ function renderGrid() {
   }
   let h='';
   for(const v of S.videos) {
-    // Processing card
     if(v._processing) {
+      const pct=v._pct||0;
       h+='<div class="video-card processing">';
       h+='<div class="card-media-processing"><div class="loader-ring"></div>';
       h+='<div class="card-shimmer"></div>';
-      h+='<span class="proc-step-badge">处理中...</span>';
+      h+='<span class="proc-step-badge">'+v._status+'</span>';
       h+='</div><div class="card-body">';
       h+='<h3>'+esc(v.url)+'</h3>';
-      h+='<div class="card-tags"><span class="card-tag" style="background:rgba(45,212,191,.08)">分析中</span></div>';
-      h+='<div class="card-footer"><div class="card-status" style="color:var(--color-accent)">'+v._status+'</div><span class="card-date">现在</span></div>';
+      h+='<div style="height:3px;background:var(--color-border);border-radius:2px;margin:8px 0;overflow:hidden">';
+      h+='<div style="height:100%;width:'+pct+'%;background:var(--color-accent);border-radius:2px;transition:width .3s ease"></div></div>';
+      h+='<div class="card-footer"><div class="card-status" style="color:var(--color-accent)">'+pct+'%</div><span class="card-date">处理中</span></div>';
       h+='</div></div>';
       continue;
     }
@@ -686,6 +985,7 @@ function renderGrid() {
     const dt=(v.created_at||'').slice(0,10);
     const tier=sc>=80?'hot':sc>=60?'good':'ok';
     h+='<div class="video-card" data-tier="'+tier+'" onclick="openDetail(\''+v.id+'\')">';
+    h+='<button class="card-del" onclick="event.stopPropagation();confirmDeleteVideo(\''+v.id+'\',\''+esc((v.title||v.id).substring(0,40))+'\')" title="删除">\u00D7</button>';
     h+='<div class="card-media"><span class="card-media-symbol">&#9670;</span>';
     h+='<span class="card-dur">'+dur+'</span>';
     if(sc>0) h+='<span class="card-score '+tier+'">'+sc+'</span>';
@@ -717,45 +1017,170 @@ function openAddModal() {
 
 function closeAddModal() { if(!S.locked) document.getElementById('add-backdrop').classList.remove('open'); }
 
+// ── Batch mode ──
+function switchAddMode(mode,el) {
+  S.addMode=mode;
+  document.querySelectorAll('#add-mode-toggle .btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('single-url-field').style.display=mode==='single'?'block':'none';
+  document.getElementById('batch-url-field').style.display=mode==='batch'?'block':'none';
+  document.getElementById('import-field').style.display=mode==='import'?'block':'none';
+  const startBtn=document.getElementById('start-btn');
+  if(mode==='import') {
+    startBtn.style.display='none';
+    loadImportList();
+  } else {
+    startBtn.style.display='';
+  }
+  if(mode==='single') { document.getElementById('add-url').focus(); }
+  else if(mode==='batch') { document.getElementById('batch-urls').focus(); updateBatchCount(); }
+}
+
+function updateBatchCount() {
+  const lines=document.getElementById('batch-urls').value.split('\n').filter(l=>l.trim());
+  document.getElementById('batch-url-count').textContent=lines.length+' 个链接';
+}
+
+async function loadImportList() {
+  const c=document.getElementById('import-list');
+  c.innerHTML='<div style="text-align:center;padding:30px 0"><span class="spinner" style="display:inline-block;width:16px;height:16px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span></div>';
+  try {
+    const d=await $.get('/api/scan-videos');
+    const vids=d.videos||[];
+    if(!vids.length) { c.innerHTML='<p style="color:var(--color-text-dim);text-align:center;padding:20px">没有可导入的视频<br><span style="font-size:.78rem">将 mp4 放入 videos/ 目录后刷新</span></p>'; return; }
+    let h='';
+    for(const v of vids) {
+      h+='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--color-border);cursor:pointer;transition:background .15s" onmouseover="this.style.background=\'var(--color-accent-dim)\'" onmouseout="this.style.background=\'transparent\'" onclick="importVideo(\''+esc(v.filepath)+'\',\''+esc(v.title)+'\')">';
+      h+='<span style="font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;margin-right:10px">'+esc(v.title||v.filename)+'</span>';
+      h+='<span style="font-size:.76rem;color:var(--color-text-dim);white-space:nowrap">'+v.size_mb+' MB</span>';
+      h+='</div>';
+    }
+    c.innerHTML=h;
+  } catch(e) {
+    c.innerHTML='<div class="error-state" style="padding:20px"><span class="err-icon" style="font-size:1.2rem">&#9888;</span><div class="err-msg" style="font-size:.8rem">'+esc(e.message)+'</div><button class="btn btn-primary btn-sm" onclick="loadImportList()">重试</button></div>';
+  }
+}
+
+async function importVideo(filepath, title) {
+  try {
+    const r=await $.post('/api/import',{filepath,title});
+    toast('已导入: '+title,false);
+    loadImportList(); loadLibrary(); closeAddModal();
+  } catch(e) { toast('导入失败: '+e.message,true); }
+}
+
+// ── Modified startPipeline for batch support ──
+async function startPipeline() {
+  if(S.addMode==='single') {
+    await startSinglePipeline();
+  } else {
+    await startBatchPipeline();
+  }
+}
+
+async function startSinglePipeline() {
+  const url=document.getElementById('add-url').value.trim();
+  if(!url) return toast('请输入视频链接',true);
+  await runOnePipeline(url,S.mode);
+  closeAddModal();
+}
+
+async function startBatchPipeline() {
+  const urls=document.getElementById('batch-urls').value.split('\n').map(l=>l.trim()).filter(l=>l);
+  if(!urls.length) return toast('请输入至少一个视频链接',true);
+  const mode=S.mode;
+  document.getElementById('add-backdrop').classList.remove('open');
+
+  for(let i=0;i<urls.length;i++) {
+    const url=urls[i];
+    const procEntry={_processing:true,url:url,_status:'排队中 ('+(i+1)+'/'+urls.length+')',_mode:mode,_pct:0};
+    S.videos.unshift(procEntry);
+    renderGrid();
+    await runOnePipeline(url,mode);
+    procEntry._status='处理完成';
+    procEntry._pct=100;
+    renderGrid();
+  }
+  S.videos=S.videos.filter(v=>!v._processing);
+  await loadLibrary();
+  toast('批量处理完成！共 '+urls.length+' 个视频',false);
+}
+
+async function runOnePipeline(url,mode) {
+  const procEntry=S.videos.find(v=>v._processing&&v.url===url);
+  const tempId='task_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  let progressTimer=null;
+
+  const pollProgress=async()=>{
+    try {
+      const p=await $.get('/api/progress?video_id='+tempId);
+      if(p&&p.percent!==undefined&&procEntry) {
+        const step=p.step||'download';
+        const stepLabel=step==='transcribe'?'转写':step==='download'?'下载':step;
+        procEntry._status=stepLabel+' '+p.percent+'%';
+        procEntry._pct=p.percent;
+        renderGrid();
+        if(p.percent>=100&&p.status==='done') { if(progressTimer) clearInterval(progressTimer); progressTimer=null; }
+      }
+    } catch {}
+  };
+  progressTimer=setInterval(pollProgress,800);
+  pollProgress();
+
+  try {
+    const r=await $.process({url,mode,video_id:tempId});
+    if(progressTimer) clearInterval(progressTimer);
+    const steps=r.steps||[];
+    if(steps.some(s=>s.status==='error')) {
+      if(procEntry) { S.videos=S.videos.filter(v=>!v._processing); renderGrid(); }
+      showErrorModal('部分步骤执行失败',steps);
+      return;
+    }
+    if(procEntry) { procEntry._status='处理完成'; procEntry._pct=100; renderGrid(); }
+  } catch(e) {
+    if(progressTimer) clearInterval(progressTimer);
+    if(procEntry) { S.videos=S.videos.filter(v=>!v._processing); renderGrid(); }
+    let steps=[];
+    try { const errBody=JSON.parse(e.message); steps=errBody.steps||[]; } catch {}
+    showErrorModal(e.message,steps);
+  }
+}
+
 function setMode(m,el) {
   S.mode=m;
   document.querySelectorAll('.radio-option').forEach(r=>r.classList.remove('selected'));
   el.classList.add('selected');
 }
 
-async function startPipeline() {
-  const url=document.getElementById('add-url').value.trim();
-  if(!url) return toast('请输入视频链接',true);
-  const mode=S.mode;
+function showErrorModal(msg, steps) {
+  const names={download:'下载视频',transcribe:'语音转写',script_analysis:'指标分析',ai_analysis:'AI 分析'};
+  const list=document.getElementById('error-step-list');
+  const detail=document.getElementById('error-detail');
 
-  // Close modal immediately — progress shows on the card
-  document.getElementById('add-backdrop').classList.remove('open');
-  document.getElementById('start-btn').style.display='';
-
-  // Insert processing card at top of grid
-  const procEntry={_processing:true,url:url,_status:'准备下载...',_mode:mode};
-  S.videos.unshift(procEntry);
-  renderGrid();
-
-  try {
-    // Update status periodically (UI-only, since server is synchronous)
-    procEntry._status='下载中...';
-    setTimeout(()=>{ renderGrid(); },3000);
-
-    procEntry._status='转写中...';
-    setTimeout(()=>{ renderGrid(); },8000);
-
-    const r=await $.process({url,mode});
-
-    // Remove processing entry, reload library
-    S.videos=S.videos.filter(v=>!v._processing);
-    await loadLibrary();
-    toast('分析完成！',false);
-  } catch(e) {
-    S.videos=S.videos.filter(v=>!v._processing);
-    renderGrid();
-    toast(e.message,true);
+  if(steps.length>0) {
+    let h='<div style="display:flex;flex-direction:column;gap:6px">';
+    for(const s of steps) {
+      const ok=s.status==='done';
+      h+='<div class="err-step '+(ok?'ok':'fail')+'">';
+      h+='<span class="dot">'+(ok?'\u2714':'\u2716')+'</span>';
+      h+='<span class="step-name">'+(names[s.step]||s.step)+'</span>';
+      h+='<span class="step-tag">'+(ok?'完成':'失败')+'</span></div>';
+    }
+    h+='</div>'; list.innerHTML=h;
+    const firstErr=steps.find(s=>s.status==='error');
+    if(firstErr&&firstErr.error) {
+      detail.style.display='block';
+      detail.innerHTML='<div style="font-weight:600;color:var(--color-danger);margin-bottom:6px">错误详情</div>'+esc(firstErr.error);
+    } else { detail.style.display='none'; }
+  } else {
+    list.innerHTML='<div style="font-size:.85rem;color:var(--color-text-dim)">'+esc(msg)+'</div>';
+    detail.style.display='none';
   }
+  document.getElementById('error-backdrop').classList.add('open');
+}
+
+function closeErrorModal() {
+  document.getElementById('error-backdrop').classList.remove('open');
 }
 
 // ═══════════════════════════════════════
@@ -766,18 +1191,107 @@ async function openDetail(id) {
   const v=S.videos.find(x=>x.id===id);
   if(!v) return;
   document.getElementById('detail-backdrop').classList.add('open');
-  document.getElementById('detail-title').textContent=v.title||id;
-  document.getElementById('detail-tag-row').innerHTML=(v.tags||[]).map(t=>'<span class="card-tag">'+t+'</span>').join('')+' <span style="font-family:var(--font-display);font-size:.75rem;color:var(--color-accent);margin-left:4px">'+(v.viral_score||'&mdash;')+'</span>';
+  renderDetailTags(v);
+
+  // Editable title
+  document.getElementById('detail-title').innerHTML='<input class="inline-edit" id="detail-title-input" value="'+esc(v.title||v.id||'')+'" onblur="saveTitle()" onkeydown="if(event.key===\'Enter\')this.blur()">';
+
   const video=document.getElementById('detail-video');
   video.src='/api/video-file/'+id;
-  document.getElementById('detail-stage').style.display=v.transcript_status==='done'?'block':'none';
+  document.getElementById('detail-stage').style.display='block';
+  // Autoplay
+  video.onloadedmetadata=()=>video.play().catch(()=>{});
+
+  // Workflow bar
+  buildWorkflowBar(v);
+
+  // Action buttons
+  buildActionBar(v);
+
+  // Tab state
   document.querySelectorAll('.detail-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  switchDetailTab('transcript', document.querySelector('.detail-tab'));
+}
+
+function buildWorkflowBar(v) {
+  const st=v.transcript_status, ai=v.deepseek_status;
+  const hasFile=!!v.file_size_mb;
+  const steps=[
+    {key:'download',label:'下载',icon:'\u{1F4E5}',done:hasFile,active:false,disabled:!hasFile},
+    {key:'transcribe',label:'转写',icon:'\u{1F399}',done:st==='done',active:hasFile&&st!=='done'&&st!=='error',disabled:!hasFile,error:st==='error'},
+    {key:'analyze',label:'AI分析',icon:'\u{1F9E0}',done:ai==='done',active:st==='done'&&ai!=='done'&&ai!=='error',disabled:st!=='done',error:ai==='error'},
+  ];
+  let h='';
+  for(const s of steps) {
+    let cls='wf-step';
+    if(s.done) cls+=' done';
+    else if(s.active) cls+=' active';
+    else if(s.disabled||s.error) cls+=' pending';
+    if(s.error) cls+=' error';
+    const click=s.active?(' onclick="triggerWorkflowStep(\''+s.key+'\')"') : '';
+    const icon=s.done?'\u2705':s.error?'\u274C':s.icon;
+    h+='<div class="'+cls+'"'+click+'><span class="wf-icon">'+icon+'</span>'+s.label+'</div>';
+  }
+  document.getElementById('detail-workflow').innerHTML=h;
+}
+
+function buildActionBar(v) {
+  const st=v.transcript_status, ai=v.deepseek_status;
+  let btns='';
+  if(st!=='done') btns+='<button class="btn btn-primary btn-sm" onclick="triggerTranscribe()" id="btn-transcribe">\u{1F399} 开始转写</button>';
+  if(st==='done'&&ai!=='done') btns+='<button class="btn btn-primary btn-sm" onclick="triggerAI()">\u{1F9E0} AI 分析</button>';
+  if(st==='done') btns+='<button class="btn btn-ghost btn-sm" onclick="triggerReTranscribe()">\u{1F504} 重新转写</button>';
+  if(ai==='done') btns+='<button class="btn btn-ghost btn-sm" onclick="triggerReAnalyze()">\u{1F504} 重新分析</button>';
+  if(st==='error') btns+='<button class="btn btn-ghost btn-sm" onclick="triggerTranscribe()">\u{1F504} 重试转写</button>';
+  btns+='<button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="confirmDeleteVideo(\''+v.id+'\',\''+esc((v.title||v.id).substring(0,40))+'\')">\u{1F5D1} 删除</button>';
+  document.getElementById('detail-actions').innerHTML=btns;
+}
+
+function triggerWorkflowStep(key) {
+  if(key==='transcribe') triggerTranscribe();
+  else if(key==='analyze') triggerAI();
+}
+
+async function triggerTranscribe() {
+  const id=S.currentId;
+  const v=S.videos.find(x=>x.id===id);
+  if(!v) return;
+  document.getElementById('btn-transcribe')&&(document.getElementById('btn-transcribe').disabled=true);
+  document.getElementById('detail-panel').innerHTML='<div style="text-align:center;padding:40px 0"><span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span> <span style="color:var(--color-accent)">正在转写，请稍候...</span></div>';
   try {
+    await $.post('/api/transcribe',{video_id:id});
+    v.transcript_status='done';
+    buildWorkflowBar(v); buildActionBar(v);
+    switchDetailTab('transcript', document.querySelector('.detail-tab'));
     const t=await $.transcript(id);
     renderTranscript(t);
+    loadLibrary();
+    toast('转写完成',false);
   } catch(e) {
-    document.getElementById('detail-panel').innerHTML='<p style="color:var(--color-text-dim)">暂无转写数据。</p>';
+    document.getElementById('detail-panel').innerHTML='<p style="color:var(--color-danger);text-align:center;line-height:1.8">转写失败<br><span style="font-size:.82rem">'+esc(e.message)+'</span><br><br><button class="btn btn-primary btn-sm" onclick="triggerTranscribe()">\u{1F504} 重试</button></p>';
+    if(v) v.transcript_status='error';
+    buildWorkflowBar(v); buildActionBar(v);
   }
+}
+
+async function triggerReTranscribe() {
+  showConfirm('重新转写将覆盖现有转写数据，确定？', async ()=>{
+    const id=S.currentId;
+    document.getElementById('detail-panel').innerHTML='<div style="text-align:center;padding:40px 0"><span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span> <span style="color:var(--color-accent)">正在重新转写...</span></div>';
+    try {
+      await $.post('/api/transcribe',{video_id:id});
+      const v=S.videos.find(x=>x.id===id);
+      if(v) v.transcript_status='done';
+      buildWorkflowBar(v); buildActionBar(v);
+      switchDetailTab('transcript', document.querySelector('.detail-tab'));
+      const t=await $.transcript(id);
+      renderTranscript(t);
+      loadLibrary();
+      toast('重新转写完成',false);
+    } catch(e) {
+      document.getElementById('detail-panel').innerHTML='<p style="color:var(--color-danger);text-align:center">重新转写失败: '+esc(e.message)+'<br><br><button class="btn btn-primary btn-sm" onclick="triggerReTranscribe()">\u{1F504} 重试</button></p>';
+    }
+  });
 }
 
 function closeDetailModal() {
@@ -787,8 +1301,9 @@ function closeDetailModal() {
 
 async function switchDetailTab(tab,el) {
   document.querySelectorAll('.detail-tab').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  if(el) el.classList.add('active');
   const p=document.getElementById('detail-panel');
+  p.innerHTML='<div style="text-align:center;padding:40px 0"><span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span></div>';
   if(tab==='transcript') {
     try { renderTranscript(await $.transcript(S.currentId)); } catch { p.innerHTML='<p style="color:var(--color-text-dim)">暂无转写数据。</p>'; }
   } else if(tab==='metrics') {
@@ -796,10 +1311,25 @@ async function switchDetailTab(tab,el) {
   } else if(tab==='analysis') {
     try {
       const r=await $.report(S.currentId);
-      if(!r||!r.trim()) { p.innerHTML='<p style="color:var(--color-text-dim)">暂无 AI 分析报告。<br><br><button class="btn btn-primary btn-sm" onclick="triggerAI()">运行 AI 分析</button></p>'; return; }
-      p.innerHTML='<div class="report">'+marked.parse(r)+'</div>';
+      if(!r||!r.trim()) { p.innerHTML='<p style="color:var(--color-text-dim);text-align:center;line-height:1.8">暂无 AI 分析报告。<br><br><button class="btn btn-primary btn-sm" onclick="triggerAI()">\u{1F9E0} 运行 AI 分析</button></p>'; return; }
+      p.innerHTML='<div class="report">'+marked.parse(r)+'<div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="copyReport()">\u{1F4CB} 复制报告</button><button class="btn btn-ghost btn-sm" onclick="downloadReport()">\u{1F4E5} 下载 .md</button></div></div>';
     } catch { p.innerHTML='<p style="color:var(--color-text-dim)">暂无 AI 分析报告。</p>'; }
   }
+}
+
+function copyReport() {
+  const r=document.querySelector('.report');
+  if(!r) return;
+  navigator.clipboard.writeText(r.innerText).then(()=>toast('已复制到剪贴板',false)).catch(()=>toast('复制失败',true));
+}
+
+function downloadReport() {
+  const r=document.querySelector('.report');
+  if(!r) return;
+  const blob=new Blob([r.innerText],{type:'text/markdown'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='report_'+S.currentId+'.md';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('报告已下载',false);
 }
 
 function renderTranscript(t) {
@@ -839,27 +1369,79 @@ function renderMetrics(a) {
 }
 
 async function triggerAI() {
-  document.getElementById('detail-panel').innerHTML=
-    '<div style="text-align:center;padding:40px 0">'+
+  const p=document.getElementById('detail-panel');
+  const stages=['🔍 正在读取转写内容...','🧠 正在调用 DeepSeek 分析...','📝 正在生成分析报告...'];
+  let si=0;
+  const t0=Date.now();
+  const t=setInterval(()=>{
+    p.innerHTML='<div style="text-align:center;padding:40px 0">'+
     '<div style="display:inline-flex;align-items:center;gap:10px;font-size:.9rem;color:var(--color-accent)">'+
     '<span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span>'+
-    'AI 正在分析文案，请稍候...</div>'+
-    '<div class="progress-bar-wrap" style="margin-top:16px;max-width:300px;margin-left:auto;margin-right:auto"><div class="progress-bar-fill" id="ai-progress" style="width:0%"></div></div>'+
+    stages[si]+'</div>'+
+    '<div style="font-size:.72rem;color:var(--color-text-dim);margin-top:8px">'+Math.floor((Date.now()-t0)/1000)+'s</div>'+
     '</div>';
-  let p=0;
-  const t=setInterval(()=>{if(p<90){p+=3+Math.random()*4;document.getElementById('ai-progress').style.width=Math.min(p,90)+'%'}},350);
+    si=(si+1)%stages.length;
+  },2200);
   try {
     await $.analyze({video_id:S.currentId});
-    clearInterval(t); document.getElementById('ai-progress').style.width='100%';
+    clearInterval(t);
     const v=S.videos.find(x=>x.id===S.currentId);
     const r=await $.report(S.currentId);
-    document.getElementById('detail-panel').innerHTML='<div class="report">'+marked.parse(r)+'</div>';
-    if(v) v.deepseek_status='done';
-    loadLibrary(); toast('AI 分析完成',false);
+    p.innerHTML='<div class="report">'+marked.parse(r)+'<div style="margin-top:16px;display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="copyReport()">\u{1F4CB} 复制报告</button><button class="btn btn-ghost btn-sm" onclick="downloadReport()">\u{1F4E5} 下载 .md</button></div></div>';
+    if(v) { v.deepseek_status='done'; buildWorkflowBar(v); buildActionBar(v); }
+    loadLibrary(); toast('AI 分析完成 (耗时 '+(Math.floor((Date.now()-t0)/1000))+'s)',false);
   } catch(e) {
     clearInterval(t);
-    document.getElementById('detail-panel').innerHTML='<p style="color:var(--color-danger);text-align:center">'+e.message+'</p>';
+    p.innerHTML='<p style="color:var(--color-danger);text-align:center;line-height:1.8">AI 分析失败<br><span style="font-size:.82rem">'+esc(e.message)+'</span><br><br><button class="btn btn-primary btn-sm" onclick="triggerAI()">\u{1F504} 重试</button></p>';
+    const v=S.videos.find(x=>x.id===S.currentId);
+    if(v) { v.deepseek_status='error'; buildWorkflowBar(v); buildActionBar(v); }
   }
+}
+
+async function triggerReAnalyze() {
+  showConfirm('重新分析将覆盖现有分析报告，确定？', async ()=>{
+    await triggerAI();
+  });
+}
+
+// ── Save inline edits ──
+async function saveTitle() {
+  const input=document.getElementById('detail-title-input');
+  if(!input) return;
+  const newTitle=input.value.trim();
+  if(!newTitle||!S.currentId) return;
+  const v=S.videos.find(x=>x.id===S.currentId);
+  if(v) v.title=newTitle;
+  try { await $.post('/api/save',{id:S.currentId,title:newTitle}); toast('标题已保存',false); }
+  catch(e) { toast('保存失败: '+e.message,true); }
+}
+
+// ── Confirm Modal ──
+let _confirmCb=null;
+function showConfirm(msg, cb) {
+  document.getElementById('confirm-msg').textContent=msg;
+  document.getElementById('confirm-backdrop').classList.add('open');
+  _confirmCb=cb;
+  document.getElementById('confirm-ok-btn').onclick=()=>{
+    closeConfirmModal();
+    if(_confirmCb) _confirmCb();
+  };
+}
+function closeConfirmModal() {
+  document.getElementById('confirm-backdrop').classList.remove('open');
+  _confirmCb=null;
+}
+
+function confirmDeleteVideo(id, title) {
+  showConfirm('确定要删除视频「'+title+'」吗？视频文件和分析数据将被永久删除。', async ()=>{
+    try {
+      await $.post('/api/delete',{id});
+      S.videos=S.videos.filter(v=>v.id!==id);
+      if(S.currentId===id) closeDetailModal();
+      renderGrid(); loadLibrary();
+      toast('已删除',false);
+    } catch(e) { toast('删除失败: '+e.message,true); }
+  });
 }
 
 // ═══════════════════════════════════════
@@ -867,24 +1449,27 @@ async function triggerAI() {
 // ═══════════════════════════════════════
 async function loadMeta() {
   const c=document.getElementById('meta-content');
+  c.innerHTML='<div style="text-align:center;padding:60px 0"><span class="spinner" style="display:inline-block;width:20px;height:20px;border:3px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span></div>';
   try {
     const d=await $.methodology(S.tag);
-    if(!d.total_analyzed) { c.innerHTML='<div class="empty-state"><span class="empty-state-icon">&#9670;</span><h3>No data yet</h3><p>Analyze at least one video to surface design patterns.</p></div>'; return; }
+    if(!d.total_analyzed) { c.innerHTML='<div class="empty-state"><span class="empty-state-icon">&#9670;</span><h3>暂无数据</h3><p>完成至少一个视频的 AI 分析后，这里会展示方法论文本。</p></div>'; return; }
     let h='<div class="meta-grid">';
-    h+='<div class="meta-card"><h3>Hook type distribution</h3><div class="hook-row">';
+    h+='<div class="meta-card"><h3>开场钩子分布</h3><div class="hook-row">';
     for(const [n,k] of (d.hook_patterns||[])) h+='<span class="hook-badge">'+esc(n)+' ('+k+')</span>';
-    if(!d.hook_patterns.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">No hook data yet.</span>';
+    if(!d.hook_patterns.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">暂无钩子数据</span>';
     h+='</div></div>';
-    h+='<div class="meta-card"><h3>Reusable title templates</h3>';
+    h+='<div class="meta-card"><h3>可复用标题模板</h3>';
     for(const t of (d.title_templates||[]).slice(0,6)) h+='<div class="tpl-item">'+esc(t)+'</div>';
-    if(!d.title_templates.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">No templates extracted yet.</span>';
+    if(!d.title_templates.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">暂无模板</span>';
     h+='</div>';
-    h+='<div class="meta-card"><h3>Top examples (score &ge; 75)</h3>';
+    h+='<div class="meta-card"><h3>高分案例 (score &ge; 75)</h3>';
     for(const e of (d.best_examples||[])) h+='<div class="example-row" onclick="openDetail(\''+e.id+'\')"><span>'+esc((e.title||'').substring(0,55))+'</span><span class="card-score hot" style="position:static;display:inline-flex">'+e.viral_score+'</span></div>';
-    if(!d.best_examples.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">No high-scoring examples yet.</span>';
+    if(!d.best_examples.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">暂无高分案例</span>';
     h+='</div></div>';
     c.innerHTML=h;
-  } catch(e) { c.innerHTML='<div class="empty-state"><p style="color:var(--color-danger)">'+e.message+'</p></div>'; }
+  } catch(e) {
+    c.innerHTML='<div class="error-state"><span class="err-icon">&#9888;</span><div class="err-msg">加载方法论失败<br>'+esc(e.message)+'</div><button class="btn btn-primary btn-sm" onclick="loadMeta()">\u{1F504} 重试</button></div>';
+  }
 }
 
 // ═══════════════════════════════════════
@@ -892,15 +1477,20 @@ async function loadMeta() {
 // ═══════════════════════════════════════
 let liveCharts=[];
 async function loadStats() {
+  document.getElementById('kpi-strip').innerHTML='<div style="text-align:center;padding:40px 0"><span class="spinner" style="display:inline-block;width:20px;height:20px;border:3px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span></div>';
+  document.getElementById('chart-row').innerHTML='';
   try {
     const d=await $.stats();
     document.getElementById('kpi-strip').innerHTML=
-      '<div class="kpi-tile"><div class="num accent">'+(d.total_videos||0)+'</div><div class="lbl">Total videos</div></div>'+
-      '<div class="kpi-tile"><div class="num">'+(d.avg_viral_score||0)+'</div><div class="lbl">Avg score</div></div>'+
-      '<div class="kpi-tile"><div class="num warn">'+(d.score_distribution?.['爆款(80+)']||0)+'</div><div class="lbl">Viral (80+)</div></div>'+
-      '<div class="kpi-tile"><div class="num">'+(d.score_distribution?.['优质(60-79)']||0)+'</div><div class="lbl">Quality (60-79)</div></div>';
+      '<div class="kpi-tile"><div class="num accent">'+(d.total_videos||0)+'</div><div class="lbl">视频总数</div></div>'+
+      '<div class="kpi-tile"><div class="num">'+(d.avg_viral_score||0)+'</div><div class="lbl">平均爆款分</div></div>'+
+      '<div class="kpi-tile"><div class="num warn">'+(d.score_distribution?.['爆款(80+)']||0)+'</div><div class="lbl">爆款 (80+)</div></div>'+
+      '<div class="kpi-tile"><div class="num">'+(d.score_distribution?.['优质(60-79)']||0)+'</div><div class="lbl">优质 (60-79)</div></div>';
     renderCharts(d);
-  } catch(e) { document.getElementById('chart-row').innerHTML='<div class="empty-state"><p style="color:var(--color-danger)">'+e.message+'</p></div>'; }
+  } catch(e) {
+    document.getElementById('kpi-strip').innerHTML='';
+    renderLoadError('chart-row','加载统计数据失败:<br>'+e.message,'loadStats()');
+  }
 }
 
 function renderCharts(d) {
@@ -929,6 +1519,118 @@ function renderCharts(d) {
 // ═══════════════════════════════════════
 document.getElementById('add-backdrop').addEventListener('click',function(e){ if(e.target===this&&!S.locked) closeAddModal(); });
 document.getElementById('detail-backdrop').addEventListener('click',function(e){ if(e.target===this) closeDetailModal(); });
+
+document.getElementById('error-backdrop').addEventListener('click',function(e){ if(e.target===this) closeErrorModal(); });
+document.getElementById('confirm-backdrop').addEventListener('click',function(e){ if(e.target===this) closeConfirmModal(); });
+document.getElementById('tag-backdrop').addEventListener('click',function(e){ if(e.target===this) closeTagModal(); });
+
+// ═══════════════════════════════════════
+// Search
+// ═══════════════════════════════════════
+let searchTimer=null;
+function onSearchInput() {
+  const q=document.getElementById('search-input').value.trim();
+  document.getElementById('search-clear').classList.toggle('show',q.length>0);
+  S.searchQuery=q;
+  clearTimeout(searchTimer);
+  searchTimer=setTimeout(()=>loadLibrary(),300);
+}
+function clearSearch() {
+  document.getElementById('search-input').value='';
+  document.getElementById('search-clear').classList.remove('show');
+  S.searchQuery='';
+  loadLibrary();
+}
+
+// ═══════════════════════════════════════
+// Multi-Select & Batch Analyze
+// ═══════════════════════════════════════
+function toggleSelectMode() {
+  S.selectMode=!S.selectMode;
+  S.selected={};
+  document.getElementById('multi-bar').classList.toggle('show',S.selectMode);
+  document.querySelectorAll('.video-card').forEach(c=>c.classList.toggle('select-mode',S.selectMode));
+  updateSelectUI();
+}
+function toggleCardSelect(id) {
+  if(!S.selectMode) return openDetail(id);
+  if(S.selected[id]) delete S.selected[id];
+  else S.selected[id]=true;
+  document.querySelectorAll('.video-card').forEach(c=>{
+    const vid=c.getAttribute('onclick')?.match(/openDetail\('([^']+)'\)/)?.[1];
+    if(vid) c.classList.toggle('selected',!!S.selected[vid]);
+  });
+  updateSelectUI();
+}
+function updateSelectUI() {
+  const count=Object.keys(S.selected).length;
+  document.getElementById('select-count').textContent='已选 '+count+' 个';
+  document.getElementById('batch-analyze-btn').disabled=count===0;
+}
+function clearSelection() {
+  S.selectMode=false; S.selected={};
+  document.getElementById('multi-bar').classList.remove('show');
+  document.querySelectorAll('.video-card').forEach(c=>{c.classList.remove('select-mode','selected');});
+  renderGrid();
+}
+async function batchAnalyze() {
+  const ids=Object.keys(S.selected);
+  if(!ids.length) return toast('请选择至少一个视频',true);
+  clearSelection();
+  S.videos.filter(v=>ids.includes(v.id)&&v.transcript_status==='done').forEach(v=>{v.deepseek_status='running';});
+  renderGrid();
+  let done=0, err=0;
+  for(const id of ids) {
+    const v=S.videos.find(x=>x.id===id);
+    if(!v||v.transcript_status!=='done') continue;
+    try { await $.analyze({video_id:id}); v.deepseek_status='done'; done++; }
+    catch(e) { v.deepseek_status='error'; err++; }
+    renderGrid();
+  }
+  loadLibrary();
+  toast('批量分析完成: '+done+' 成功'+(err?', '+err+' 失败':''));
+}
+
+// Override card click for select mode
+document.addEventListener('click',function(e) {
+  if(!S.selectMode) return;
+  const card=e.target.closest('.video-card');
+  if(!card||card.classList.contains('processing')) return;
+  if(e.target.closest('.card-del')) return;
+  e.stopPropagation(); e.preventDefault();
+  const m=card.getAttribute('onclick')?.match(/openDetail\('([^']+)'\)/);
+  if(m) toggleCardSelect(m[1]);
+},true);
+
+// Add select mode toggle button to view header
+document.addEventListener('DOMContentLoaded',function() {
+  const sortRow=document.getElementById('sort-row');
+  const btn=document.createElement('button');
+  btn.className='btn btn-ghost btn-sm';
+  btn.style.marginLeft='auto';
+  btn.textContent='多选模式';
+  btn.onclick=toggleSelectMode;
+  sortRow.appendChild(btn);
+});
+
+// ── Render grid with checkboxes in select mode ──
+const origRenderGrid=renderGrid;
+renderGrid=function() {
+  origRenderGrid();
+  if(S.selectMode) {
+    document.querySelectorAll('.video-card').forEach(c=>c.classList.add('select-mode'));
+    document.querySelectorAll('.video-card:not(.processing)').forEach(c=>{
+      const m=c.getAttribute('onclick')?.match(/openDetail\('([^']+)'\)/);
+      if(!m) return;
+      const cb=document.createElement('input');
+      cb.type='checkbox'; cb.className='card-checkbox';
+      cb.checked=!!S.selected[m[1]];
+      if(c.querySelector('.card-checkbox')) return;
+      c.insertBefore(cb,c.firstChild);
+    });
+  }
+  updateSelectUI();
+};
 
 // ═══════════════════════════════════════
 // Init
