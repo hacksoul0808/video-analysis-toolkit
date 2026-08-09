@@ -19,7 +19,7 @@ BASE = Path(__file__).parent
 VIDEO_DIR = BASE.parent / "videos" / "lau_all"
 
 # Load data
-with open(BASE / "data.json") as f:
+with open(BASE / "data.json", encoding="utf-8") as f:
     DATA = json.load(f)
 
 VIDEOS = DATA["videos"]
@@ -29,23 +29,24 @@ VIDEOS.sort(key=lambda x: x.get("create_time", 0), reverse=True)
 TRANSCRIPTS = {}
 transcript_file = BASE / "all_transcripts.json"
 if transcript_file.exists():
-    with open(transcript_file) as f:
+    with open(transcript_file, encoding="utf-8") as f:
         TRANSCRIPTS = json.load(f)
 
 # Load script analysis
 SCRIPT_ANALYSIS = {}
 analysis_file = BASE / "script_analysis.json"
 if analysis_file.exists():
-    with open(analysis_file) as f:
+    with open(analysis_file, encoding="utf-8") as f:
         SCRIPT_ANALYSIS = json.load(f)
 
 # Map video IDs to files
 VID_FILES = {}
-for f in VIDEO_DIR.iterdir():
-    if f.suffix == ".mp4":
-        m = re.search(r"(\d{18,})", f.name)
-        if m:
-            VID_FILES[m.group(1)] = f
+if VIDEO_DIR.exists():
+    for f in VIDEO_DIR.iterdir():
+        if f.suffix == ".mp4":
+            m = re.search(r"(\d{18,})", f.name)
+            if m:
+                VID_FILES[m.group(1)] = f
 
 
 def build_index_html():
@@ -859,7 +860,9 @@ class Handler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     print(f"Starting server at http://localhost:{PORT}")
-    print(f"Videos: {len(VID_FILES)} files, Thumbnails: {len(list((BASE/'thumbnails').glob('*.jpg')))} files")
+    thumb_dir = BASE / "thumbnails"
+    thumb_count = len(list(thumb_dir.glob("*.jpg"))) if thumb_dir.exists() else 0
+    print(f"Videos: {len(VID_FILES)} files, Thumbnails: {thumb_count} files")
     print(f"Press Ctrl+C to stop")
     server = HTTPServer(("0.0.0.0", PORT), Handler)
     try:

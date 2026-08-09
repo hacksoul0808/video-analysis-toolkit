@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Script Analyzer</title>
+<meta name="description" content="AI-powered video script analysis platform — download, transcribe, and discover viral content formulas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+/* ═══════════════════════════════════════
+   Design System
+   Type: Space Grotesk (display) + DM Sans (body)
+   Palette: Deep charcoal base, one teal accent
+   Dials: VARIANCE 5 / MOTION 4 / DENSITY 5
+   ═══════════════════════════════════════ */
+
+:root {
+  --color-bg: #080b0d;
+  --color-surface: #0e1419;
+  --color-surface-elevated: #141c24;
+  --color-border: #1e2a34;
+  --color-border-hover: #2d3d4a;
+  --color-accent: #2dd4bf;
+  --color-accent-dim: rgba(45,212,191,.12);
+  --color-accent-glow: rgba(45,212,191,.25);
+  --color-text: #e2e8f0;
+  --color-text-muted: #64748b;
+  --color-text-dim: #475569;
+  --color-danger: #f87171;
+  --color-danger-dim: rgba(248,113,113,.12);
+  --color-warning: #fbbf24;
+  --color-success: #34d399;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.5);
+  --shadow-glow: 0 0 20px var(--color-accent-glow);
+  --transition-fast: 180ms cubic-bezier(.4,0,.2,1);
+  --transition-smooth: 280ms cubic-bezier(.4,0,.2,1);
+  --transition-spring: 350ms cubic-bezier(.34,1.56,.64,1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100dvh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--color-border-hover); border-radius:10px; }
+
+/* ── Typography Scale ── */
+h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
+.display { font-size:clamp(1.5rem, 3vw, 2rem); font-weight:700; letter-spacing:-0.03em; line-height:1.1; text-wrap:balance; }
+.heading { font-size:1.15rem; font-weight:600; color:#f1f5f9; }
+.caption { font-size:.75rem; color:var(--color-text-muted); letter-spacing:.02em; text-transform:uppercase; font-weight:500; }
+
+/* ── Layout ── */
+.page { max-width:1360px; margin:0 auto; padding:28px 32px; }
+.page-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px; gap:16px; }
+
+/* ── Header Bar ── */
+.app-bar {
+  position: sticky; top:0; z-index:100;
+  background: rgba(8,11,13,.82); backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 32px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.app-bar-brand { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:#f1f5f9; letter-spacing:-0.02em; }
+.app-bar-brand span { color:var(--color-accent); }
+.app-bar-nav { display:flex; gap:2px; }
+.app-bar-nav button {
+  background:transparent; color:var(--color-text-muted); border:none;
+  padding:8px 20px; border-radius:var(--radius-sm); font-size:.85rem;
+  font-family:var(--font-body); font-weight:500; cursor:pointer; transition:var(--transition-fast);
+}
+.app-bar-nav button:hover { color:var(--color-text); background:var(--color-surface-elevated); }
+.app-bar-nav button.active { color:var(--color-accent); background:var(--color-accent-dim); }
+
+/* ── Button System ── */
+.btn {
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--font-body); font-weight:500; font-size:.85rem;
+  padding:10px 22px; border-radius:var(--radius-md); border:none; cursor:pointer;
+  transition: all var(--transition-fast); outline:none; white-space:nowrap;
+  position:relative; overflow:hidden;
+}
+.btn:focus-visible { box-shadow:0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent); }
+.btn-primary {
+  background:var(--color-accent); color:#042f2e;
+  box-shadow: 0 2px 8px var(--color-accent-glow);
+}
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 16px var(--color-accent-glow); }
+.btn-primary:active { transform:scale(.97) translateY(0); }
+
+.btn-ghost {
+  background:transparent; color:var(--color-text-muted); border:1px solid var(--color-border);
+}
+.btn-ghost:hover { color:var(--color-text); border-color:var(--color-border-hover); background:var(--color-surface); }
+.btn-ghost.active { background:var(--color-accent-dim); color:var(--color-accent); border-color:var(--color-accent); }
+
+.btn-danger { background:transparent; color:var(--color-danger); border:1px solid var(--color-danger); }
+.btn-danger:hover { background:var(--color-danger-dim); }
+
+.btn-sm { padding:6px 14px; font-size:.8rem; border-radius:var(--radius-sm); }
+.btn-icon { width:36px; height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); }
+
+/* ── Tags ── */
+.tag-cloud { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+.tag-chip {
+  font-family:var(--font-body); font-size:.78rem; font-weight:500;
+  padding:5px 14px; border-radius:100px; cursor:pointer; border:1px solid var(--color-border);
+  background:transparent; color:var(--color-text-dim);
+  transition:all var(--transition-fast);
+}
+.tag-chip:hover { border-color:var(--color-border-hover); color:var(--color-text); }
+.tag-chip.active { background:var(--color-accent-dim); border-color:var(--color-accent); color:var(--color-accent); }
+
+/* ── Sort ── */
+.sort-row { display:flex; gap:6px; margin-bottom:20px; }
+
+/* ── Video Grid ── */
+.video-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+.video-card {
+  background:var(--color-surface);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-lg);
+  overflow:hidden; cursor:pointer;
+  transition: all var(--transition-smooth);
+  position:relative;
+  display:flex; flex-direction:column;
+}
+.video-card:hover {
+  transform:translateY(-3px);
+  border-color:var(--color-border-hover);
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--color-accent-glow);
+}
+.video-card:active { transform:scale(.985); }
+
+.video-card[data-tier="hot"] { border-left:3px solid var(--color-accent); }
+.video-card[data-tier="good"] { border-left:3px solid var(--color-warning); }
+.video-card[data-tier="ok"] { border-left:3px solid var(--color-text-dim); }
+
+.card-media {
+  position:relative; aspect-ratio:16/9;
+  background:var(--color-bg);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.card-media::after {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse at 60% 40%, var(--color-accent-dim) 0%, transparent 70%);
+  opacity:.4; pointer-events:none;
+}
+.card-media-symbol { font-size:2.4rem; opacity:.15; font-family:var(--font-display); color:var(--color-accent); }
+.card-dur {
+  position:absolute; bottom:10px; right:10px;
+  background:rgba(0,0,0,.8); color:var(--color-text);
+  padding:2px 10px; border-radius:4px; font-size:.7rem; font-weight:500;
+  font-variant-numeric:tabular-nums; font-family:var(--font-body);
+  backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.06);
+}
+.card-score {
+  position:absolute; top:10px; right:10px;
+  padding:3px 10px; border-radius:100px; font-size:.68rem; font-weight:700;
+  font-family:var(--font-display); letter-spacing:.02em;
+  backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.08);
+}
+.card-score.hot { background:rgba(45,212,191,.18); color:var(--color-accent); }
+.card-score.good { background:rgba(251,191,36,.15); color:var(--color-warning); }
+.card-score.ok { background:rgba(100,116,139,.15); color:var(--color-text-muted); }
+
+.card-body { padding:14px 18px 16px; flex:1; display:flex; flex-direction:column; }
+.card-body h3 {
+  font-family:var(--font-display); font-size:.95rem; font-weight:600; color:var(--color-text);
+  line-height:1.35; margin-bottom:10px;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.card-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:auto; }
+.card-tag { font-size:.7rem; padding:3px 9px; border-radius:4px; background:var(--color-accent-dim); color:var(--color-accent); font-weight:500; }
+.card-footer { display:flex; align-items:center; gap:10px; margin-top:12px; padding-top:12px; border-top:1px solid var(--color-border); }
+.card-status { font-size:.7rem; display:flex; gap:12px; color:var(--color-text-dim); }
+.card-status .ok { color:var(--color-success); }
+.card-date { font-size:.7rem; color:var(--color-text-dim); margin-left:auto; }
+
+/* ── Processing Card (skeleton / shimmer) ── */
+.video-card.processing { cursor:default; pointer-events:none; border-left:3px solid var(--color-accent); }
+.video-card.processing:hover { transform:none; box-shadow:none; }
+.card-shimmer {
+  position:absolute; inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(45,212,191,.04) 50%,transparent 100%);
+  animation:shimmer 2s ease-in-out infinite;
+}
+@keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+.card-media-processing {
+  position:relative; aspect-ratio:16/9; background:var(--color-bg);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.card-media-processing .loader-ring {
+  width:40px; height:40px; border:3px solid var(--color-border);
+  border-top-color:var(--color-accent); border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+.proc-step-badge {
+  position:absolute; bottom:10px; left:10px;
+  background:rgba(45,212,191,.12); color:var(--color-accent);
+  padding:3px 10px; border-radius:100px; font-size:.68rem; font-weight:500;
+  backdrop-filter:blur(6px);
+}
+
+/* ── Empty State ── */
+.empty-state { text-align:center; padding:80px 20px; }
+.empty-state-icon { font-size:3rem; opacity:.12; margin-bottom:20px; display:block; }
+.empty-state h3 { font-size:1.1rem; font-weight:600; color:var(--color-text-muted); margin-bottom:8px; }
+.empty-state p { color:var(--color-text-dim); font-size:.88rem; margin-bottom:20px; max-width:360px; margin-left:auto; margin-right:auto; }
+
+/* ── Modal ── */
+.modal-backdrop {
+  display:none; position:fixed; inset:0; z-index:1000;
+  background:rgba(0,0,0,.78); backdrop-filter:blur(4px);
+  overflow-y:auto; padding:40px 20px;
+}
+.modal-backdrop.open { display:flex; justify-content:center; align-items:flex-start; }
+
+.modal {
+  width:100%; max-width:580px;
+  background:var(--color-surface-elevated);
+  border:1px solid var(--color-border);
+  border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-lg),0 0 0 1px rgba(255,255,255,.04);
+  overflow:hidden;
+}
+.modal.wide { max-width:960px; }
+
+.modal-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px 24px; border-bottom:1px solid var(--color-border);
+}
+.modal-head h3 { font-size:1.1rem; font-weight:600; }
+.modal-close {
+  width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+  border-radius:var(--radius-sm); border:none; background:transparent; color:var(--color-text-dim);
+  font-size:1.2rem; cursor:pointer; transition:var(--transition-fast);
+}
+.modal-close:hover { background:var(--color-surface); color:var(--color-text); }
+.modal-body { padding:24px; }
+
+/* ── Form ── */
+.field { margin-bottom:18px; }
+.field-label { display:block; font-size:.8rem; font-weight:500; color:var(--color-text-muted); margin-bottom:6px; }
+.field-input {
+  width:100%; padding:12px 16px; border-radius:var(--radius-md);
+  background:var(--color-surface); border:1px solid var(--color-border);
+  color:var(--color-text); font-size:.9rem; font-family:var(--font-body);
+  outline:none; transition:all var(--transition-fast);
+}
+.field-input:focus { border-color:var(--color-accent); box-shadow:0 0 0 3px var(--color-accent-dim); }
+.field-input::placeholder { color:var(--color-text-dim); }
+
+.radio-stack { display:flex; flex-direction:column; gap:8px; }
+.radio-option {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:14px 16px; border-radius:var(--radius-md);
+  background:var(--color-surface); border:1px solid var(--color-border);
+  cursor:pointer; transition:all var(--transition-fast);
+}
+.radio-option:hover { border-color:var(--color-border-hover); }
+.radio-option.selected { border-color:var(--color-accent); background:var(--color-accent-dim); }
+.radio-option input[type="radio"] { accent-color:var(--color-accent); margin-top:2px; }
+.radio-label { font-size:.88rem; font-weight:500; }
+.radio-desc { font-size:.76rem; color:var(--color-text-dim); margin-top:2px; }
+
+/* ── Progress ── */
+.pipeline-area { margin-top:18px; display:none; }
+.progress-bar-wrap {
+  height:4px; background:var(--color-border); border-radius:2px;
+  overflow:hidden; margin-bottom:22px;
+}
+.progress-bar-fill {
+  height:100%; width:0%; background:linear-gradient(90deg,var(--color-accent),#14b8a6);
+  border-radius:2px; transition:width .6s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 8px var(--color-accent-glow);
+}
+.stepper {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  position:relative;
+}
+.stepper::before {
+  content:''; position:absolute; top:18px; left:30px; right:30px;
+  height:2px; background:var(--color-border); z-index:0;
+}
+.stepper-step {
+  display:flex; flex-direction:column; align-items:center;
+  flex:1; position:relative; z-index:1;
+}
+.stepper-dot {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem; font-weight:600; font-family:var(--font-display);
+  border:2px solid var(--color-border); background:var(--color-bg);
+  color:var(--color-text-dim); transition:all var(--transition-smooth);
+  position:relative;
+}
+.stepper-dot.active {
+  border-color:var(--color-accent); color:var(--color-accent);
+  box-shadow:0 0 12px var(--color-accent-glow);
+  animation:pulse 1.6s ease-in-out infinite;
+}
+.stepper-dot.done {
+  border-color:var(--color-success); background:var(--color-success);
+  color:#042f2e;
+}
+.stepper-dot.error {
+  border-color:var(--color-danger); background:var(--color-danger-dim);
+  color:var(--color-danger);
+}
+@keyframes pulse { 0%,100%{box-shadow:0 0 8px var(--color-accent-glow)} 50%{box-shadow:0 0 20px var(--color-accent-glow)} }
+.stepper-label {
+  margin-top:10px; font-size:.72rem; color:var(--color-text-dim);
+  text-align:center; white-space:nowrap; transition:color var(--transition-fast);
+}
+.stepper-label.active { color:var(--color-accent); font-weight:600; }
+.stepper-label.done { color:var(--color-success); }
+.stepper-label.error { color:var(--color-danger); }
+.status-msg {
+  text-align:center; margin-top:16px; font-size:.84rem;
+  color:var(--color-text-muted); min-height:24px;
+}
+.status-msg .spinner {
+  display:inline-block; width:14px; height:14px;
+  border:2px solid var(--color-border); border-top-color:var(--color-accent);
+  border-radius:50%; animation:spin .7s linear infinite;
+  vertical-align:middle; margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Detail Modal ── */
+.video-stage { background:#000; aspect-ratio:16/9; }
+.video-stage video { width:100%; height:100%; object-fit:contain; }
+.detail-meta { padding:18px 24px; border-bottom:1px solid var(--color-border); }
+.detail-meta h2 { font-size:1.1rem; font-weight:600; line-height:1.35; margin-bottom:10px; text-wrap:balance; }
+.detail-meta-tags { display:flex; gap:6px; flex-wrap:wrap; }
+.detail-tabs { display:flex; gap:6px; padding:12px 24px; border-bottom:1px solid var(--color-border); }
+.detail-tab {
+  padding:8px 18px; border-radius:var(--radius-sm); border:none; cursor:pointer;
+  background:transparent; color:var(--color-text-muted); font-family:var(--font-body);
+  font-size:.84rem; font-weight:500; transition:var(--transition-fast);
+}
+.detail-tab:hover { color:var(--color-text); background:var(--color-surface); }
+.detail-tab.active { background:var(--color-accent-dim); color:var(--color-accent); }
+.detail-panel { padding:24px; max-height:480px; overflow-y:auto; }
+
+/* ── Transcript ── */
+.transcript-seg {
+  display:flex; gap:12px; padding:7px 10px; border-radius:var(--radius-sm);
+  font-size:.85rem; line-height:1.7; cursor:pointer; transition:background var(--transition-fast);
+}
+.transcript-seg:hover { background:var(--color-surface); }
+.transcript-seg.active { background:var(--color-accent-dim); border-left:3px solid var(--color-accent); }
+.seg-stamp {
+  color:var(--color-accent); font-size:.72rem; min-width:46px; flex-shrink:0;
+  cursor:pointer; padding-top:3px; font-variant-numeric:tabular-nums; font-family:var(--font-body);
+}
+.seg-stamp:hover { text-decoration:underline; }
+
+/* ── Metrics ── */
+.stat-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--color-border); }
+.stat-row:last-child { border-bottom:none; }
+.stat-label { color:var(--color-text-muted); font-size:.85rem; }
+.stat-val { font-weight:600; font-size:.88rem; font-variant-numeric:tabular-nums; font-family:var(--font-body); }
+.stat-val.high { color:var(--color-success); }
+.stat-val.mid { color:var(--color-warning); }
+.stat-val.low { color:var(--color-danger); }
+
+/* ── Report Markdown ── */
+.report { font-size:.88rem; line-height:1.75; color:var(--color-text); }
+.report h2 { font-family:var(--font-display); font-size:1.15rem; color:var(--color-accent); margin:24px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--color-border); letter-spacing:-.01em; }
+.report h3 { font-family:var(--font-display); font-size:.98rem; color:var(--color-text); margin:18px 0 8px; font-weight:600; }
+.report h4 { font-size:.85rem; color:var(--color-text-muted); margin:12px 0 6px; font-weight:500; }
+.report p { margin:8px 0; }
+.report ul,.report ol { padding-left:22px; margin:8px 0; }
+.report li { margin:4px 0; }
+.report code { background:var(--color-surface); padding:2px 7px; border-radius:4px; font-size:.82rem; font-family:'JetBrains Mono',monospace; }
+.report pre { background:var(--color-surface); padding:16px; border-radius:var(--radius-md); overflow-x:auto; margin:12px 0; border:1px solid var(--color-border); }
+.report table { width:100%; border-collapse:collapse; margin:14px 0; font-size:.82rem; }
+.report th,.report td { padding:9px 14px; border:1px solid var(--color-border); text-align:left; }
+.report th { background:var(--color-surface); color:var(--color-accent); font-weight:600; }
+.report blockquote { border-left:3px solid var(--color-accent); padding:10px 18px; margin:14px 0; background:var(--color-accent-dim); border-radius:0 var(--radius-sm) var(--radius-sm) 0; color:var(--color-text-muted); font-style:italic; }
+.report strong { color:#f1f5f9; }
+.report em { color:var(--color-warning); font-style:italic; }
+
+/* ── Methodology ── */
+.meta-grid { display:flex; flex-direction:column; gap:20px; }
+.meta-card {
+  background:var(--color-surface); border:1px solid var(--color-border);
+  border-radius:var(--radius-lg); padding:24px;
+}
+.meta-card h3 { font-family:var(--font-display); font-size:1.05rem; font-weight:600; margin-bottom:16px; color:#f1f5f9; }
+
+.hook-row { display:flex; gap:8px; flex-wrap:wrap; }
+.hook-badge { background:var(--color-accent-dim); color:var(--color-accent); padding:6px 14px; border-radius:100px; font-size:.78rem; font-weight:500; }
+
+.tpl-item {
+  background:var(--color-bg); padding:14px 18px; border-radius:var(--radius-sm);
+  margin-bottom:8px; font-size:.82rem; color:var(--color-text-muted);
+  border-left:3px solid var(--color-accent); font-family:var(--font-body);
+}
+
+.example-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 0; border-bottom:1px solid var(--color-border); cursor:pointer;
+  transition:color var(--transition-fast);
+}
+.example-row:hover { color:var(--color-accent); }
+.example-row:last-child { border-bottom:none; }
+
+/* ── Stats ── */
+.kpi-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:26px; }
+.kpi-tile {
+  background:var(--color-surface); border:1px solid var(--color-border);
+  border-radius:var(--radius-lg); padding:20px; text-align:center;
+}
+.kpi-tile .num { font-family:var(--font-display); font-size:1.8rem; font-weight:700; letter-spacing:-.02em; }
+.kpi-tile .num.accent { color:var(--color-accent); }
+.kpi-tile .num.warn { color:var(--color-warning); }
+.kpi-tile .lbl { font-size:.72rem; color:var(--color-text-dim); margin-top:4px; }
+
+.chart-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:20px; }
+.chart-box {
+  background:var(--color-surface); border:1px solid var(--color-border);
+  border-radius:var(--radius-lg); padding:22px;
+}
+.chart-box h4 { font-family:var(--font-display); font-size:.9rem; font-weight:600; margin-bottom:16px; color:var(--color-text); }
+.chart-box canvas { max-height:280px; }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; top:20px; right:20px; z-index:2000;
+  padding:14px 22px; border-radius:var(--radius-md); font-size:.85rem; font-weight:500;
+  background:var(--color-surface-elevated); border:1px solid var(--color-border);
+  color:var(--color-text); box-shadow:var(--shadow-lg);
+  max-width:420px; animation:toastIn .35s cubic-bezier(.34,1.56,.64,1);
+}
+.toast.err { border-color:var(--color-danger); background:var(--color-danger-dim); color:var(--color-danger); }
+@keyframes toastIn { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+/* ── Responsive ── */
+@media (max-width:720px) {
+  .page { padding:16px; }
+  .app-bar { padding:12px 16px; flex-wrap:wrap; gap:10px; }
+  .video-grid { grid-template-columns:1fr; }
+  .chart-row { grid-template-columns:1fr; }
+  .kpi-strip { grid-template-columns:repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ App Bar ═══════════════════════ -->
+<header class="app-bar">
+  <div class="app-bar-brand"><span>&#9670;</span> 文案分析平台</div>
+  <nav class="app-bar-nav">
+    <button class="active" onclick="switchView('library')">视频库</button>
+    <button onclick="switchView('methodology')">方法论</button>
+    <button onclick="switchView('stats')">统计</button>
+  </nav>
+</header>
+
+<!-- ═══════════════════════ Main Page ═══════════════════════ -->
+<main class="page">
+
+  <!-- ── VIEW: Library ── -->
+  <section id="view-library">
+    <div class="page-header">
+      <h1 class="display" id="lib-heading">视频库</h1>
+      <button class="btn btn-primary" onclick="openAddModal()">+ 添加视频</button>
+    </div>
+    <div class="tag-cloud" id="tag-cloud"></div>
+    <div class="sort-row" id="sort-row">
+      <button class="btn btn-ghost btn-sm active" onclick="sortBy('created_at',this)">按时间</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortBy('viral_score',this)">按爆款分</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortBy('likes',this)">按点赞</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortBy('duration',this)">按时长</button>
+    </div>
+    <div class="video-grid" id="video-grid"></div>
+  </section>
+
+  <!-- ── VIEW: Methodology ── -->
+  <section id="view-methodology" style="display:none">
+    <div class="page-header"><h1 class="display">方法论</h1></div>
+    <div id="meta-content"></div>
+  </section>
+
+  <!-- ── VIEW: Stats ── -->
+  <section id="view-stats" style="display:none">
+    <div class="page-header"><h1 class="display">统计看板</h1></div>
+    <div class="kpi-strip" id="kpi-strip"></div>
+    <div class="chart-row" id="chart-row"></div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════ Modal: Add ═══════════════════════ -->
+<div class="modal-backdrop" id="add-backdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>添加视频</h3>
+      <button class="modal-close" onclick="closeAddModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label class="field-label">视频链接</label>
+        <input class="field-input" id="add-url" placeholder="粘贴链接（支持抖音 / YouTube / B站...）" onkeydown="if(event.key==='Enter')startPipeline()">
+      </div>
+      <div class="field">
+        <label class="field-label">分析模式</label>
+        <div class="radio-stack">
+          <label class="radio-option selected" onclick="setMode('full',this)">
+            <input type="radio" name="mode" value="full" checked>
+            <div><div class="radio-label">全自动流水线</div><div class="radio-desc">下载 + 转写 + AI分析，一步完成</div></div>
+          </label>
+          <label class="radio-option" onclick="setMode('download_transcribe',this)">
+            <input type="radio" name="mode" value="download_transcribe">
+            <div><div class="radio-label">下载 + 转写</div><div class="radio-desc">稍后在详情页手动触发 AI 分析</div></div>
+          </label>
+          <label class="radio-option" onclick="setMode('download_only',this)">
+            <input type="radio" name="mode" value="download_only">
+            <div><div class="radio-label">仅下载</div><div class="radio-desc">加入队列，稍后统一处理</div></div>
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="start-btn" onclick="startPipeline()" style="width:100%">开始分析</button>
+      <div class="pipeline-area" id="pipeline-area">
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
+        <div class="stepper" id="stepper"></div>
+        <div class="status-msg" id="status-msg"></div>
+      </div>
+      <div id="pipeline-done" style="margin-top:18px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ Modal: Detail ═══════════════════════ -->
+<div class="modal-backdrop" id="detail-backdrop">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3>视频详情</h3>
+      <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+    </div>
+    <div class="video-stage" id="detail-stage">
+      <video id="detail-video" controls></video>
+    </div>
+    <div class="detail-meta">
+      <h2 id="detail-title"></h2>
+      <div class="detail-meta-tags" id="detail-tag-row"></div>
+    </div>
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="switchDetailTab('transcript',this)">转写文本</button>
+      <button class="detail-tab" onclick="switchDetailTab('metrics',this)">脚本指标</button>
+      <button class="detail-tab" onclick="switchDetailTab('analysis',this)">AI 分析报告</button>
+    </div>
+    <div class="detail-panel" id="detail-panel"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// State
+// ═══════════════════════════════════════
+const S = {
+  view:'library', tag:null, sort:'created_at',
+  videos:[], tags:[], currentId:null, mode:'full', locked:false
+};
+
+// ═══════════════════════════════════════
+// API
+// ═══════════════════════════════════════
+const $ = {
+  async get(u) { const r=await fetch(u); if(!r.ok) throw new Error((await r.json().catch(()=>({error:r.statusText}))).error); return r.json(); },
+  async post(u,d) { const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}); if(!r.ok) throw new Error((await r.json().catch(()=>({error:r.statusText}))).error); return r.json(); },
+  library: (t,s) => $.get('/api/library?sort='+s+(t?'&tag='+encodeURIComponent(t):'')),
+  stats: () => $.get('/api/stats'),
+  methodology: (t) => $.get('/api/methodology'+(t?'?tag='+encodeURIComponent(t):'')),
+  process: (d) => $.post('/api/process',d),
+  analyze: (d) => $.post('/api/analyze',d),
+  report: (id) => fetch('/api/video/report/'+id).then(r=>r.text()),
+  transcript: (id) => $.get('/api/video/transcript/'+id),
+  analysis: (id) => $.get('/api/video/analysis/'+id),
+};
+
+// ═══════════════════════════════════════
+// Toast
+// ═══════════════════════════════════════
+function toast(m,err) {
+  const t=document.createElement('div'); t.className='toast'+(err?' err':'');
+  t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),3600);
+}
+
+// ═══════════════════════════════════════
+// View
+// ═══════════════════════════════════════
+function switchView(v) {
+  S.view=v;
+  document.querySelectorAll('.app-bar-nav button').forEach((b,i)=>b.classList.toggle('active',['library','methodology','stats'].indexOf(v)===i));
+  document.getElementById('view-library').style.display=v==='library'?'block':'none';
+  document.getElementById('view-methodology').style.display=v==='methodology'?'block':'none';
+  document.getElementById('view-stats').style.display=v==='stats'?'block':'none';
+  if(v==='library') loadLibrary();
+  if(v==='methodology') loadMeta();
+  if(v==='stats') loadStats();
+}
+
+// ═══════════════════════════════════════
+// Library
+// ═══════════════════════════════════════
+async function loadLibrary() {
+  try {
+    const d=await $.library(S.tag,S.sort);
+    S.videos=d.videos||[]; S.tags=d.tags||[];
+    document.getElementById('lib-heading').textContent=S.tag?'筛选: '+S.tag:'视频库';
+    renderTags(); renderGrid();
+  } catch(e) { toast(e.message,true); }
+}
+
+function renderTags() {
+  const c=document.getElementById('tag-cloud');
+  let h='<button class="tag-chip'+(!S.tag?' active':'')+'" onclick="filterTag(null)">全部 ('+S.videos.length+')</button>';
+  for(const [n,k] of S.tags.slice(0,14)) h+='<button class="tag-chip'+(S.tag===n?' active':'')+'" onclick="filterTag(\''+n+'\')">'+n+' ('+k+')</button>';
+  c.innerHTML=h;
+}
+
+function filterTag(t) { S.tag=t; loadLibrary(); }
+
+function sortBy(s,el) {
+  S.sort=s;
+  document.querySelectorAll('#sort-row .btn-ghost').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  loadLibrary();
+}
+
+function renderGrid() {
+  const g=document.getElementById('video-grid');
+  if(!S.videos.length) {
+    g.innerHTML='<div class="empty-state"><span class="empty-state-icon">&#9670;</span><h3>暂无视频</h3><p>添加视频链接，自动分析文案并提取爆款方法论。</p><button class="btn btn-primary" onclick="openAddModal()">添加视频</button></div>';
+    return;
+  }
+  let h='';
+  for(const v of S.videos) {
+    // Processing card
+    if(v._processing) {
+      h+='<div class="video-card processing">';
+      h+='<div class="card-media-processing"><div class="loader-ring"></div>';
+      h+='<div class="card-shimmer"></div>';
+      h+='<span class="proc-step-badge">处理中...</span>';
+      h+='</div><div class="card-body">';
+      h+='<h3>'+esc(v.url)+'</h3>';
+      h+='<div class="card-tags"><span class="card-tag" style="background:rgba(45,212,191,.08)">分析中</span></div>';
+      h+='<div class="card-footer"><div class="card-status" style="color:var(--color-accent)">'+v._status+'</div><span class="card-date">现在</span></div>';
+      h+='</div></div>';
+      continue;
+    }
+    const sc=v.viral_score||0;
+    const st=v.transcript_status==='done';
+    const ai=v.deepseek_status==='done';
+    const dur=v.duration_sec?Math.floor(v.duration_sec/60)+':'+String(Math.floor(v.duration_sec%60)).padStart(2,'0'):'--';
+    const dt=(v.created_at||'').slice(0,10);
+    const tier=sc>=80?'hot':sc>=60?'good':'ok';
+    h+='<div class="video-card" data-tier="'+tier+'" onclick="openDetail(\''+v.id+'\')">';
+    h+='<div class="card-media"><span class="card-media-symbol">&#9670;</span>';
+    h+='<span class="card-dur">'+dur+'</span>';
+    if(sc>0) h+='<span class="card-score '+tier+'">'+sc+'</span>';
+    h+='</div><div class="card-body">';
+    h+='<h3>'+esc(v.title||v.id)+'</h3>';
+    h+='<div class="card-tags">'+(v.tags||[]).slice(0,3).map(t=>'<span class="card-tag">'+t+'</span>').join('')+'</div>';
+    h+='<div class="card-footer"><div class="card-status">';
+    h+='<span class="'+(st?'ok':'')+'">转写 '+(st?'&check;':'&mdash;')+'</span>';
+    h+='<span class="'+(ai?'ok':'')+'">分析 '+(ai?'&check;':'&mdash;')+'</span>';
+    h+='</div><span class="card-date">'+dt+'</span></div>';
+    h+='</div></div>';
+  }
+  g.innerHTML=h;
+}
+
+function esc(s) { if(!s)return''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ═══════════════════════════════════════
+// Add Modal
+// ═══════════════════════════════════════
+function openAddModal() {
+  S.locked=false; S.mode='full';
+  document.getElementById('add-backdrop').classList.add('open');
+  document.getElementById('add-url').value=''; document.getElementById('add-url').focus();
+  document.getElementById('pipeline-area').style.display='none';
+  document.getElementById('pipeline-done').innerHTML='';
+  document.getElementById('start-btn').style.display='';
+}
+
+function closeAddModal() { if(!S.locked) document.getElementById('add-backdrop').classList.remove('open'); }
+
+function setMode(m,el) {
+  S.mode=m;
+  document.querySelectorAll('.radio-option').forEach(r=>r.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function startPipeline() {
+  const url=document.getElementById('add-url').value.trim();
+  if(!url) return toast('请输入视频链接',true);
+  const mode=S.mode;
+
+  // Close modal immediately — progress shows on the card
+  document.getElementById('add-backdrop').classList.remove('open');
+  document.getElementById('start-btn').style.display='';
+
+  // Insert processing card at top of grid
+  const procEntry={_processing:true,url:url,_status:'准备下载...',_mode:mode};
+  S.videos.unshift(procEntry);
+  renderGrid();
+
+  try {
+    // Update status periodically (UI-only, since server is synchronous)
+    procEntry._status='下载中...';
+    setTimeout(()=>{ renderGrid(); },3000);
+
+    procEntry._status='转写中...';
+    setTimeout(()=>{ renderGrid(); },8000);
+
+    const r=await $.process({url,mode});
+
+    // Remove processing entry, reload library
+    S.videos=S.videos.filter(v=>!v._processing);
+    await loadLibrary();
+    toast('分析完成！',false);
+  } catch(e) {
+    S.videos=S.videos.filter(v=>!v._processing);
+    renderGrid();
+    toast(e.message,true);
+  }
+}
+
+// ═══════════════════════════════════════
+// Detail Modal
+// ═══════════════════════════════════════
+async function openDetail(id) {
+  S.currentId=id;
+  const v=S.videos.find(x=>x.id===id);
+  if(!v) return;
+  document.getElementById('detail-backdrop').classList.add('open');
+  document.getElementById('detail-title').textContent=v.title||id;
+  document.getElementById('detail-tag-row').innerHTML=(v.tags||[]).map(t=>'<span class="card-tag">'+t+'</span>').join('')+' <span style="font-family:var(--font-display);font-size:.75rem;color:var(--color-accent);margin-left:4px">'+(v.viral_score||'&mdash;')+'</span>';
+  const video=document.getElementById('detail-video');
+  video.src='/api/video-file/'+id;
+  document.getElementById('detail-stage').style.display=v.transcript_status==='done'?'block':'none';
+  document.querySelectorAll('.detail-tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  try {
+    const t=await $.transcript(id);
+    renderTranscript(t);
+  } catch(e) {
+    document.getElementById('detail-panel').innerHTML='<p style="color:var(--color-text-dim)">暂无转写数据。</p>';
+  }
+}
+
+function closeDetailModal() {
+  const v=document.getElementById('detail-video'); v.pause(); v.src='';
+  document.getElementById('detail-backdrop').classList.remove('open'); S.currentId=null;
+}
+
+async function switchDetailTab(tab,el) {
+  document.querySelectorAll('.detail-tab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const p=document.getElementById('detail-panel');
+  if(tab==='transcript') {
+    try { renderTranscript(await $.transcript(S.currentId)); } catch { p.innerHTML='<p style="color:var(--color-text-dim)">暂无转写数据。</p>'; }
+  } else if(tab==='metrics') {
+    try { renderMetrics(await $.analysis(S.currentId)); } catch { p.innerHTML='<p style="color:var(--color-text-dim)">暂无指标数据。</p>'; }
+  } else if(tab==='analysis') {
+    try {
+      const r=await $.report(S.currentId);
+      if(!r||!r.trim()) { p.innerHTML='<p style="color:var(--color-text-dim)">暂无 AI 分析报告。<br><br><button class="btn btn-primary btn-sm" onclick="triggerAI()">运行 AI 分析</button></p>'; return; }
+      p.innerHTML='<div class="report">'+marked.parse(r)+'</div>';
+    } catch { p.innerHTML='<p style="color:var(--color-text-dim)">暂无 AI 分析报告。</p>'; }
+  }
+}
+
+function renderTranscript(t) {
+  const s=t.segments||[];
+  if(!s.length) { document.getElementById('detail-panel').innerHTML='<p style="color:var(--color-text-dim)">No transcript data.</p>'; return; }
+  let h='';
+  for(let i=0;i<s.length;i++) {
+    const m=Math.floor(s[i].start/60),ss=Math.floor(s[i].start%60);
+    h+='<div class="transcript-seg" data-t="'+s[i].start+'" id="seg-'+i+'"><span class="seg-stamp" onclick="skipTo('+s[i].start+')">'+m+':'+String(ss).padStart(2,'0')+'</span><span>'+esc(s[i].text)+'</span></div>';
+  }
+  document.getElementById('detail-panel').innerHTML=h;
+  document.getElementById('detail-video').ontimeupdate=function() {
+    const ct=this.currentTime,segs=document.querySelectorAll('.transcript-seg');
+    segs.forEach((s,i)=>{ const t=parseFloat(s.dataset.t),n=segs[i+1]?parseFloat(segs[i+1].dataset.t):Infinity; if(ct>=t&&ct<n){if(!s.classList.contains('active')){segs.forEach(x=>x.classList.remove('active'));s.classList.add('active');s.scrollIntoView({block:'center',behavior:'smooth'});}} });
+  };
+}
+
+function skipTo(t) { const v=document.getElementById('detail-video'); v.currentTime=t; v.play(); }
+
+function renderMetrics(a) {
+  const p=document.getElementById('detail-panel');
+  if(!a||!a.char_count) { p.innerHTML='<p style="color:var(--color-text-dim)">No metrics available.</p>'; return; }
+  const cpm=a.chars_per_min||0, cpmC=cpm>=295&&cpm<=315?'high':cpm>320?'low':'mid';
+  const kd=a.keyword_density||0, kdC=kd>=2&&kd<=3.5?'high':kd<1.5?'low':'mid';
+  const em=a.emotion_keywords||0, emC=em>=5?'high':em<2?'low':'mid';
+  p.innerHTML=
+    '<div class="stat-row"><span class="stat-label">Characters</span><span class="stat-val">'+(a.char_count||0).toLocaleString()+'</span></div>'+
+    '<div class="stat-row"><span class="stat-label">Duration</span><span class="stat-val">'+(a.duration||0)+'s</span></div>'+
+    '<div class="stat-row"><span class="stat-label">Speech rate</span><span class="stat-val '+cpmC+'">'+cpm+' cpm</span></div>'+
+    '<div class="stat-row"><span class="stat-label">Segments</span><span class="stat-val">'+(a.segment_count||0)+' (avg '+(a.avg_seg_chars||0)+')</span></div>'+
+    '<div class="stat-row"><span class="stat-label">AI keywords</span><span class="stat-val">'+(a.ai_keywords||0)+'</span></div>'+
+    '<div class="stat-row"><span class="stat-label">Emotion words</span><span class="stat-val '+emC+'">'+em+'</span></div>'+
+    '<div class="stat-row"><span class="stat-label">Tech terms</span><span class="stat-val">'+(a.tech_keywords||0)+'</span></div>'+
+    '<div class="stat-row"><span class="stat-label">Keyword density</span><span class="stat-val '+kdC+'">'+kd+'%</span></div>'+
+    '<div style="margin-top:18px;padding:15px;background:var(--color-surface);border-radius:var(--radius-sm);border-left:3px solid var(--color-accent)"><div class="caption" style="margin-bottom:6px">Opening hook (first 30s)</div><div style="font-size:.84rem;color:var(--color-text-muted);line-height:1.6">'+(a.hook_text||'&mdash;')+'</div></div>'+
+    '<div style="margin-top:10px;padding:15px;background:var(--color-surface);border-radius:var(--radius-sm);border-left:3px solid var(--color-text-dim)"><div class="caption" style="margin-bottom:6px">Closing (last 30s)</div><div style="font-size:.84rem;color:var(--color-text-dim);line-height:1.6">'+(a.close_text||'&mdash;')+'</div></div>';
+}
+
+async function triggerAI() {
+  document.getElementById('detail-panel').innerHTML=
+    '<div style="text-align:center;padding:40px 0">'+
+    '<div style="display:inline-flex;align-items:center;gap:10px;font-size:.9rem;color:var(--color-accent)">'+
+    '<span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid var(--color-border);border-top-color:var(--color-accent);border-radius:50%;animation:spin .7s linear infinite"></span>'+
+    'AI 正在分析文案，请稍候...</div>'+
+    '<div class="progress-bar-wrap" style="margin-top:16px;max-width:300px;margin-left:auto;margin-right:auto"><div class="progress-bar-fill" id="ai-progress" style="width:0%"></div></div>'+
+    '</div>';
+  let p=0;
+  const t=setInterval(()=>{if(p<90){p+=3+Math.random()*4;document.getElementById('ai-progress').style.width=Math.min(p,90)+'%'}},350);
+  try {
+    await $.analyze({video_id:S.currentId});
+    clearInterval(t); document.getElementById('ai-progress').style.width='100%';
+    const v=S.videos.find(x=>x.id===S.currentId);
+    const r=await $.report(S.currentId);
+    document.getElementById('detail-panel').innerHTML='<div class="report">'+marked.parse(r)+'</div>';
+    if(v) v.deepseek_status='done';
+    loadLibrary(); toast('AI 分析完成',false);
+  } catch(e) {
+    clearInterval(t);
+    document.getElementById('detail-panel').innerHTML='<p style="color:var(--color-danger);text-align:center">'+e.message+'</p>';
+  }
+}
+
+// ═══════════════════════════════════════
+// Methodology
+// ═══════════════════════════════════════
+async function loadMeta() {
+  const c=document.getElementById('meta-content');
+  try {
+    const d=await $.methodology(S.tag);
+    if(!d.total_analyzed) { c.innerHTML='<div class="empty-state"><span class="empty-state-icon">&#9670;</span><h3>No data yet</h3><p>Analyze at least one video to surface design patterns.</p></div>'; return; }
+    let h='<div class="meta-grid">';
+    h+='<div class="meta-card"><h3>Hook type distribution</h3><div class="hook-row">';
+    for(const [n,k] of (d.hook_patterns||[])) h+='<span class="hook-badge">'+esc(n)+' ('+k+')</span>';
+    if(!d.hook_patterns.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">No hook data yet.</span>';
+    h+='</div></div>';
+    h+='<div class="meta-card"><h3>Reusable title templates</h3>';
+    for(const t of (d.title_templates||[]).slice(0,6)) h+='<div class="tpl-item">'+esc(t)+'</div>';
+    if(!d.title_templates.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">No templates extracted yet.</span>';
+    h+='</div>';
+    h+='<div class="meta-card"><h3>Top examples (score &ge; 75)</h3>';
+    for(const e of (d.best_examples||[])) h+='<div class="example-row" onclick="openDetail(\''+e.id+'\')"><span>'+esc((e.title||'').substring(0,55))+'</span><span class="card-score hot" style="position:static;display:inline-flex">'+e.viral_score+'</span></div>';
+    if(!d.best_examples.length) h+='<span style="color:var(--color-text-dim);font-size:.84rem">No high-scoring examples yet.</span>';
+    h+='</div></div>';
+    c.innerHTML=h;
+  } catch(e) { c.innerHTML='<div class="empty-state"><p style="color:var(--color-danger)">'+e.message+'</p></div>'; }
+}
+
+// ═══════════════════════════════════════
+// Stats
+// ═══════════════════════════════════════
+let liveCharts=[];
+async function loadStats() {
+  try {
+    const d=await $.stats();
+    document.getElementById('kpi-strip').innerHTML=
+      '<div class="kpi-tile"><div class="num accent">'+(d.total_videos||0)+'</div><div class="lbl">Total videos</div></div>'+
+      '<div class="kpi-tile"><div class="num">'+(d.avg_viral_score||0)+'</div><div class="lbl">Avg score</div></div>'+
+      '<div class="kpi-tile"><div class="num warn">'+(d.score_distribution?.['爆款(80+)']||0)+'</div><div class="lbl">Viral (80+)</div></div>'+
+      '<div class="kpi-tile"><div class="num">'+(d.score_distribution?.['优质(60-79)']||0)+'</div><div class="lbl">Quality (60-79)</div></div>';
+    renderCharts(d);
+  } catch(e) { document.getElementById('chart-row').innerHTML='<div class="empty-state"><p style="color:var(--color-danger)">'+e.message+'</p></div>'; }
+}
+
+function renderCharts(d) {
+  liveCharts.forEach(c=>c.destroy()); liveCharts=[];
+  const row=document.getElementById('chart-row');
+  if(!d.total_videos) { row.innerHTML='<div class="empty-state"><p>No data to chart.</p></div>'; return; }
+  let h='';
+  if(d.score_distribution) h+='<div class="chart-box"><h4>Score distribution</h4><canvas id="ch-score"></canvas></div>';
+  if(d.by_tag&&Object.keys(d.by_tag).length) h+='<div class="chart-box"><h4>Tags by avg score</h4><canvas id="ch-tags"></canvas></div>';
+  row.innerHTML=h||'<div class="empty-state"><p>Not enough data.</p></div>';
+  Chart.defaults.color='#64748b'; Chart.defaults.borderColor='#1e2a34';
+  if(d.score_distribution) {
+    const sd=d.score_distribution;
+    const ctx=document.getElementById('ch-score');
+    if(ctx) liveCharts.push(new Chart(ctx,{type:'doughnut',data:{labels:Object.keys(sd),datasets:[{data:Object.values(sd),backgroundColor:['#2dd4bf','#fbbf24','#64748b','#334155']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{padding:16}}}} }));
+  }
+  if(d.by_tag&&Object.keys(d.by_tag).length) {
+    const e=Object.entries(d.by_tag).sort((a,b)=>b[1].count-a[1].count).slice(0,8);
+    const ctx=document.getElementById('ch-tags');
+    if(ctx) liveCharts.push(new Chart(ctx,{type:'bar',data:{labels:e.map(x=>x[0]),datasets:[{label:'Count',data:e.map(x=>x[1].count),backgroundColor:'rgba(45,212,191,.25)',borderColor:'#2dd4bf',borderWidth:1,yAxisID:'y'},{label:'Avg score',data:e.map(x=>x[1].avg_score),type:'line',borderColor:'#fbbf24',yAxisID:'y1',tension:.3}]},options:{responsive:true,scales:{y:{position:'left',grid:{color:'#1e2a34'}},y1:{position:'right',grid:{display:false},min:0,max:100}},plugins:{legend:{labels:{padding:16}}}} }));
+  }
+}
+
+// ═══════════════════════════════════════
+// Modal backdrop click
+// ═══════════════════════════════════════
+document.getElementById('add-backdrop').addEventListener('click',function(e){ if(e.target===this&&!S.locked) closeAddModal(); });
+document.getElementById('detail-backdrop').addEventListener('click',function(e){ if(e.target===this) closeDetailModal(); });
+
+// ═══════════════════════════════════════
+// Init
+// ═══════════════════════════════════════
+loadLibrary();
+</script>
+</body>
+</html>
