@@ -92,7 +92,7 @@ def download_video(url, output_dir, video_id):
     process = subprocess.Popen(
         [sys.executable, str(vdl_path), url, "-o", str(output_dir)],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-        text=True, bufsize=1, cwd=str(BASE_DIR),
+        encoding="utf-8", errors="replace", bufsize=1, cwd=str(BASE_DIR),
         env={**os.environ, "PYTHONIOENCODING": "utf-8"}
     )
 
@@ -209,11 +209,11 @@ def transcribe_video_file(video_path, output_json_path, progress_callback=None):
     device = "cuda" if cuda_ok else "cpu"
     compute_type = "float16" if cuda_ok else "int8"
 
-    print(f"[server {time.strftime('%H:%M:%S')}] 加载 faster-whisper 模型 large-v3, device={device}, compute_type={compute_type}")
+    print(f"[server {time.strftime('%H:%M:%S')}] 加载 faster-whisper 模型 small, device={device}, compute_type={compute_type}")
     from faster_whisper import WhisperModel
 
     try:
-        model_path = str(Path(__file__).parent / "Model")
+        model_path = str(Path(__file__).parent / "Model-s")
         model = WhisperModel(model_path, device=device, compute_type=compute_type)
         print(f"[server {time.strftime('%H:%M:%S')}] 模型加载完成, 耗时 {time.time()-t0:.1f}s")
     except Exception as e:
@@ -1180,10 +1180,15 @@ class APIHandler(SimpleHTTPRequestHandler):
                       "url": url, "file_size_mb": info.get("file_size_mb", 0)}
         try:
             print(f"[server {time.strftime('%H:%M:%S')}] [pipeline] Step 4/4: AI Analysis {video_id}")
+            progress_store[video_id] = {"percent": 50, "status": "analyzing", "step": "analyze"}
+            if old_vid:
+                progress_store[old_vid] = {"percent": 50, "status": "analyzing", "step": "analyze"}
             deepseek_result = call_deepseek(video_info, transcript, script_stats)
             if deepseek_result.get("error"):
+                progress_store[video_id] = {"percent": 100, "status": "error", "step": "analyze"}
                 steps.append({"step": "ai_analysis", "status": "error", "error": deepseek_result["error"]})
             else:
+                progress_store[video_id] = {"percent": 100, "status": "done", "step": "analyze"}
                 report_path = video_dir / "deepseek_report.md"
                 with open(report_path, "w", encoding="utf-8") as f:
                     f.write(deepseek_result["report"])
@@ -1194,6 +1199,7 @@ class APIHandler(SimpleHTTPRequestHandler):
         except Exception as e:
             print(f"[server {time.strftime('%H:%M:%S')}] [pipeline] AI Analysis FAILED: {e}")
             traceback.print_exc()
+            progress_store[video_id] = {"percent": 100, "status": "error", "step": "analyze"}
             steps.append({"step": "ai_analysis", "status": "error", "error": str(e)})
 
         self._save_pipeline_to_library(video_id, video_dir, info, steps, transcript, script_stats, deepseek_result if 'deepseek_result' in dir() else None)

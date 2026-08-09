@@ -1177,11 +1177,18 @@ async function runOnePipeline(url,mode,procEntry) {
       const p=await $.get('/api/progress?video_id='+tempId);
       if(p&&p.percent!==undefined&&procEntry) {
         const step=p.step||'download';
-        const stepLabel=step==='transcribe'?'转写':step==='download'?'下载':step;
-        procEntry._status=stepLabel+' '+p.percent+'%';
-        procEntry._pct=p.percent;
+        const status=p.status||'';
+        const stepLabel=step==='transcribe'?'转写':step==='analyze'?'分析':step==='download'?'下载':step;
+        if(status==='analyzing') {
+          procEntry._status='AI 分析中...';
+          procEntry._pct=50;
+        } else {
+          procEntry._status=stepLabel+' '+p.percent+'%';
+          procEntry._pct=p.percent;
+        }
         renderGrid();
-        if(p.percent>=100&&p.status==='done') { if(progressTimer) clearInterval(progressTimer); progressTimer=null; }
+        // Only stop when pipeline is fully done (sentinel: step=analyze + status=done)
+        // Otherwise, e.g. download done → transcribe starts, polling continues
       }
     } catch {}
   };
