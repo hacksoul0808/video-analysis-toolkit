@@ -1272,15 +1272,37 @@ class APIHandler(SimpleHTTPRequestHandler):
             self._send_json({"error": "请提供 video id"}, 400)
             return
 
-        # Remove from library
+        # Load library and find the video to get its tags
         lib = load_library()
+        target_tags = []
+        for v in lib.get("videos", []):
+            if v.get("id") == video_id:
+                target_tags = v.get("tags", [])
+                break
+
+        # Remove from library
         lib["videos"] = [v for v in lib.get("videos", []) if v.get("id") != video_id]
         save_library(lib)
 
-        # Remove files
+        # Clean up tags.json — decrement counts for removed video's tags
+        if target_tags:
+            tags_data = load_tags()
+            all_tags = tags_data.get("tags", {})
+            for t in target_tags:
+                if t in all_tags:
+                    all_tags[t] = max(0, all_tags[t] - 1)
+                    if all_tags[t] <= 0:
+                        del all_tags[t]
+            tags_data["tags"] = all_tags
+            save_tags(tags_data)
+
+        # Remove files (best-effort; video may be in use)
         video_dir = VIDEOS_DIR / video_id
         if video_dir.exists():
-            shutil.rmtree(str(video_dir))
+            try:
+                shutil.rmtree(str(video_dir))
+            except Exception as e:
+                print(f"[server] 删除目录失败 (可忽略): {video_dir} - {e}")
 
         self._send_json({"status": "deleted"})
 

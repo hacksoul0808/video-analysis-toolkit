@@ -1001,7 +1001,7 @@ function renderGrid() {
   g.innerHTML=h;
 }
 
-function esc(s) { if(!s)return''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) { if(!s)return''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 // ═══════════════════════════════════════
 // Add Modal
@@ -1081,8 +1081,20 @@ async function startPipeline() {
 async function startSinglePipeline() {
   const url=document.getElementById('add-url').value.trim();
   if(!url) return toast('请输入视频链接',true);
-  await runOnePipeline(url,S.mode);
-  closeAddModal();
+
+  // Close modal immediately — progress shows on the card
+  document.getElementById('add-backdrop').classList.remove('open');
+
+  const procEntry={_processing:true,url:url,_status:'准备下载...',_mode:S.mode,_pct:0};
+  S.videos.unshift(procEntry);
+  renderGrid();
+
+  await runOnePipeline(url,S.mode,procEntry);
+
+  // Clean up processing card and refresh
+  S.videos=S.videos.filter(v=>!v._processing);
+  await loadLibrary();
+  toast('分析完成！',false);
 }
 
 async function startBatchPipeline() {
@@ -1096,18 +1108,23 @@ async function startBatchPipeline() {
     const procEntry={_processing:true,url:url,_status:'排队中 ('+(i+1)+'/'+urls.length+')',_mode:mode,_pct:0};
     S.videos.unshift(procEntry);
     renderGrid();
-    await runOnePipeline(url,mode);
-    procEntry._status='处理完成';
-    procEntry._pct=100;
-    renderGrid();
+    try {
+      await runOnePipeline(url,mode,procEntry);
+      procEntry._status='处理完成';
+      procEntry._pct=100;
+      renderGrid();
+    } catch(e) {
+      procEntry._status='处理失败';
+      procEntry._pct=0;
+      renderGrid();
+    }
   }
   S.videos=S.videos.filter(v=>!v._processing);
   await loadLibrary();
   toast('批量处理完成！共 '+urls.length+' 个视频',false);
 }
 
-async function runOnePipeline(url,mode) {
-  const procEntry=S.videos.find(v=>v._processing&&v.url===url);
+async function runOnePipeline(url,mode,procEntry) {
   const tempId='task_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
   let progressTimer=null;
 
@@ -1132,14 +1149,14 @@ async function runOnePipeline(url,mode) {
     if(progressTimer) clearInterval(progressTimer);
     const steps=r.steps||[];
     if(steps.some(s=>s.status==='error')) {
-      if(procEntry) { S.videos=S.videos.filter(v=>!v._processing); renderGrid(); }
+      if(procEntry) { procEntry._status='部分失败'; procEntry._pct=0; renderGrid(); }
       showErrorModal('部分步骤执行失败',steps);
-      return;
+      throw new Error('Pipeline step error');
     }
     if(procEntry) { procEntry._status='处理完成'; procEntry._pct=100; renderGrid(); }
   } catch(e) {
     if(progressTimer) clearInterval(progressTimer);
-    if(procEntry) { S.videos=S.videos.filter(v=>!v._processing); renderGrid(); }
+    if(procEntry) { procEntry._status='处理失败'; procEntry._pct=0; renderGrid(); }
     let steps=[];
     try { const errBody=JSON.parse(e.message); steps=errBody.steps||[]; } catch {}
     showErrorModal(e.message,steps);
@@ -1423,8 +1440,9 @@ function showConfirm(msg, cb) {
   document.getElementById('confirm-backdrop').classList.add('open');
   _confirmCb=cb;
   document.getElementById('confirm-ok-btn').onclick=()=>{
+    const cb=_confirmCb;
     closeConfirmModal();
-    if(_confirmCb) _confirmCb();
+    if(cb) cb();
   };
 }
 function closeConfirmModal() {
@@ -1438,7 +1456,7 @@ function confirmDeleteVideo(id, title) {
       await $.post('/api/delete',{id});
       S.videos=S.videos.filter(v=>v.id!==id);
       if(S.currentId===id) closeDetailModal();
-      renderGrid(); loadLibrary();
+      await loadLibrary();
       toast('已删除',false);
     } catch(e) { toast('删除失败: '+e.message,true); }
   });
