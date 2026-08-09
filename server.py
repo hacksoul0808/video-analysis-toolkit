@@ -20,6 +20,7 @@ from pathlib import Path
 from datetime import datetime
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+from socketserver import ThreadingMixIn
 
 # ── Load .env ──────────────────────────────────────
 def _load_env():
@@ -601,6 +602,8 @@ class APIHandler(SimpleHTTPRequestHandler):
                 self._handle_get_progress(query)
             elif path.startswith("/api/video-file/"):
                 self._handle_video_file(path)
+            elif path.startswith("/sounds/"):
+                self._handle_sound(path)
             elif path.startswith("/api/video/"):
                 self._handle_get_video(path, query)
             else:
@@ -814,6 +817,21 @@ class APIHandler(SimpleHTTPRequestHandler):
             with open(fpath, "rb") as f:
                 while chunk := f.read(65536):
                     self.wfile.write(chunk)
+
+    def _handle_sound(self, path):
+        """Serve .mp3 sound files from sounds/ directory."""
+        filename = path.split("/")[-1]
+        sound_dir = BASE_DIR / "sounds"
+        sound_path = sound_dir / filename
+        if not sound_path.exists():
+            self.send_error(404, "Sound not found")
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "audio/mpeg")
+        self.send_header("Content-Length", str(sound_path.stat().st_size))
+        self.end_headers()
+        with open(sound_path, "rb") as f:
+            self.wfile.write(f.read())
 
     def _handle_scan_videos(self):
         """List MP4 files in videos/ not yet in library."""
@@ -1461,7 +1479,11 @@ if __name__ == "__main__":
     print(f"  Ctrl+C to stop")
     print(f"=" * 60)
 
-    server = HTTPServer(("0.0.0.0", PORT), APIHandler)
+    class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+        """Multi-threaded HTTP server to handle concurrent requests (progress polling during pipeline)."""
+        daemon_threads = True
+
+    server = ThreadedHTTPServer(("0.0.0.0", PORT), APIHandler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

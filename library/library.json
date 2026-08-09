@@ -1,4 +1,48 @@
 {
-  "videos": [],
-  "updated_at": "2026-08-10T01:07:32"
+  "videos": [
+    {
+      "id": "7646445739824008486",
+      "url": "https://www.douyin.com/video/7646445739824008486",
+      "title": "codex_Seedance_2_0制作带货视频__带货视频__codex__电商视频__AI电商_7646445739824008486",
+      "platform": "douyin",
+      "file_size_mb": 18.9,
+      "download_time": "2026-08-10T01:16:18",
+      "transcript_status": "done",
+      "analysis_status": "done",
+      "deepseek_status": "done",
+      "tags": [
+        "#",
+        "#",
+        "##",
+        "##",
+        "#",
+        "#",
+        "#",
+        "AI",
+        "教程向",
+        "实用技巧",
+        "认知升级",
+        "收藏向",
+        "5-8分钟"
+      ],
+      "viral_score": 100,
+      "metrics": {},
+      "script_stats": {
+        "char_count": 1401,
+        "duration": 246.8,
+        "chars_per_min": 341,
+        "segment_count": 139,
+        "avg_seg_chars": 10,
+        "ai_keywords": 2,
+        "emotion_keywords": 0,
+        "tech_keywords": 0,
+        "keyword_density": 0.14,
+        "hook_text": "这是我用Codex加Cdance 2.0做出来的一个机器人开箱视频 接下来我用30秒的时间教大家如何使用 这个就是生成电影机画板的提示词 我们直接把提示词复制到Codex里面去 这里的开头我就需要修改成收纳箱带货视频 我们还需要把最后面的要求给一个",
+        "close_text": "比一张密密麻麻的大画板更好用 第三个坑 它不能替你写故事 它只是解决怎么拍 而不是拍什么 如果我们的内容本身没有变化 那它最后还是一个很普通的视频 没有任何优势 所以你要把它当成前期策划工具 而不是万能的视频生成器 最后我们来总结一下 是把一个模糊想法 变成一套可以拍 可以改 可以交给视频模型执行的前期方案 不要一上来就让AI直接生成视频 这样后面的视频生成 才会稳很多"
+      },
+      "created_at": "2026-08-10T01:16:18",
+      "duration_sec": 246.8
+    }
+  ],
+  "updated_at": "2026-08-10T01:16:18"
 }
