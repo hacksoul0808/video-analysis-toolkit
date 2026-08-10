@@ -14,5 +14,18 @@ export const Store = {
   locked: false,
   selectMode: false,
   selected: {},
-  addMode: 'single'
+  addMode: 'single',
+
+  // 排行榜状态
+  ranking: {
+    platform: 'douyin',
+    data: [],
+    currentPage: 1,
+    pageSize: 50,
+    selectedIds: new Set(),
+    selectedDetail: null,
+    isStale: false,
+    batchDownloading: false,
+    batchProgress: null
+  }
 };
