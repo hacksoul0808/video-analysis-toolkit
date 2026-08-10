@@ -5,7 +5,7 @@
 import { API } from '../api.js';
 import { Store } from '../store.js';
 import { runOnePipeline } from './pipeline.js';
-import { esc } from '../utils.js';
+import { esc, extractUrl } from '../utils.js';
 
 // ── Open / Close ──────────────────────────────
 function openAddModal() {
@@ -147,11 +147,12 @@ async function startPipeline() {
 }
 
 async function startSinglePipeline() {
-  const url = document.getElementById('add-url').value.trim();
-  if (!url) {
+  const rawInput = document.getElementById('add-url').value.trim();
+  if (!rawInput) {
     if (window.toast) window.toast('请输入视频链接', true);
     return;
   }
+  const url = extractUrl(rawInput);
 
   document.getElementById('add-backdrop').classList.remove('open');
 
@@ -168,7 +169,9 @@ async function startSinglePipeline() {
 }
 
 async function startBatchPipeline() {
-  const urls = document.getElementById('batch-urls').value.split('\n').map(l => l.trim()).filter(l => l);
+  const urls = document.getElementById('batch-urls').value.split('\n')
+    .map(l => extractUrl(l.trim()))
+    .filter(l => l);
   if (!urls.length) {
     if (window.toast) window.toast('请输入至少一个视频链接', true);
     return;
