@@ -172,7 +172,50 @@
       "compression_ratio": 0.805,
       "has_cover": true,
       "cover_file": "cover.jpg"
+    },
+    {
+      "id": "7667951148321475850",
+      "url": "https://www.douyin.com/video/7667951148321475850",
+      "title": "当所有人随机获得英雄联盟的一个技能... #AI创作大赛 #十万个挑战 \\n#英雄联盟 #英雄联盟经典模式 \\n#啦啦啦",
+      "platform": "douyin",
+      "file_size_mb": 65.5,
+      "download_time": "2026-08-10T16:05:39",
+      "transcript_status": "done",
+      "analysis_status": "done",
+      "deepseek_status": "done",
+      "tags": [
+        "AI创作大赛",
+        "行业热点",
+        "科普教程",
+        "传播向",
+        "幽默",
+        "5-8分钟",
+        "AI"
+      ],
+      "viral_score": 53,
+      "metrics": {},
+      "script_stats": {
+        "char_count": 411,
+        "duration": 324.0,
+        "chars_per_min": 76,
+        "segment_count": 63,
+        "avg_seg_chars": 7,
+        "ai_keywords": 0,
+        "emotion_keywords": 1,
+        "tech_keywords": 0,
+        "keyword_density": 0.24,
+        "hook_text": "全大学人手一个联盟技能 一千名是胜利阵营瓜分 老师一人打十个 你打我夜问啊 老师们开局自选一件装备 并且拥有英雄的全胜姿态 这把我直接偷塔 准备好进入火焰世界了吗 有什么话和我的明火说去吧 这就淘汰了",
+        "close_text": "死门为大爷 锐天爹 优优独播剧场——YoYo Television Series Exclusive"
+      },
+      "created_at": "2026-08-10T16:05:39",
+      "duration_sec": 324.0,
+      "compressed": true,
+      "original_size_mb": 65.5,
+      "compressed_size_mb": 21.1,
+      "compression_ratio": 0.678,
+      "has_cover": true,
+      "cover_file": "cover.jpg"
     }
   ],
-  "updated_at": "2026-08-10T11:47:54"
+  "updated_at": "2026-08-10T16:07:48"
 }
