@@ -34,7 +34,13 @@
         "close_text": "比一张密密麻麻的大画板更好用 第三个坑 它不能替你写故事 它只是解决怎么拍 而不是拍什么 如果我们的内容本身没有变化 那它最后还是一个很普通的视频 没有任何优势 所以你要把它当成前期策划工具 而不是万能的视频生成器 最后我们来总结一下 是把一个模糊想法 变成一套可以拍 可以改 可以交给视频模型执行的前期方案 不要一上来就让AI直接生成视频 这样后面的视频生成 才会稳很多"
       },
       "created_at": "2026-08-10T01:16:18",
-      "duration_sec": 246.8
+      "duration_sec": 246.8,
+      "compressed": true,
+      "original_size_mb": 18.9,
+      "compressed_size_mb": 6.6,
+      "compression_ratio": 0.653,
+      "has_cover": true,
+      "cover_file": "cover.jpg"
     },
     {
       "id": "7664552514141965568",
@@ -72,7 +78,13 @@
         "close_text": ""
       },
       "created_at": "2026-08-10T02:04:46",
-      "duration_sec": 27.7
+      "duration_sec": 27.7,
+      "compressed": true,
+      "original_size_mb": 3.1,
+      "compressed_size_mb": 0.6,
+      "compression_ratio": 0.818,
+      "has_cover": true,
+      "cover_file": "cover.jpg"
     },
     {
       "id": "7648959295727488290",
@@ -108,7 +120,13 @@
         "close_text": "写完之后拍张照甩给它 它就能直接帮我转成思维导图和大纲 后面写脚本顺手就能接上了 这一圈用下来 这个模型给我最大的印象 就是便宜能干活 如果你觉得Cloud Gemini 这些价格和试错成本还是有点高 那不如先拿它 把你工作中重复的那些工作流 一个个做成小工具试一试 这条视频的图文版教程 我也准备好了 想要的评论区之一声 当然光看我玩还不够啊 这个东西还是得你自己 亲自上手搓一个 才知道有多上头 喵喵喵"
       },
       "created_at": "2026-08-10T10:10:28",
-      "duration_sec": 181.7
+      "duration_sec": 181.7,
+      "compressed": true,
+      "original_size_mb": 17.1,
+      "compressed_size_mb": 3.4,
+      "compression_ratio": 0.8,
+      "has_cover": true,
+      "cover_file": "cover.jpg"
     },
     {
       "id": "7532289168827747647",
@@ -147,8 +165,14 @@
         "close_text": "贴写式的脚本 写完之后 一篇符合爆款框架的脚本书稿 就完成了 最后一刀 注入你的灵魂 用写作模板里的润色和调整语气 根据你本人平时的语言特点 选择语言风格 然后再告诉他一些你的口头禅 或者是你的方言 调整完就是你的一篇超级原创 拆解优秀的作品 一直是短视频编导的制学手段 只不过有了AI 效率变得更快 朋友们学会给我去拍吧 希望这条视频 能够帮你刷新人生的脚本 感谢观看"
       },
       "created_at": "2026-08-10T11:14:55",
-      "duration_sec": 115.8
+      "duration_sec": 115.8,
+      "compressed": true,
+      "original_size_mb": 12.5,
+      "compressed_size_mb": 2.4,
+      "compression_ratio": 0.805,
+      "has_cover": true,
+      "cover_file": "cover.jpg"
     }
   ],
-  "updated_at": "2026-08-10T11:22:54"
+  "updated_at": "2026-08-10T11:47:54"
 }

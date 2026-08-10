@@ -10,11 +10,12 @@ import traceback
 from datetime import datetime
 from urllib.parse import parse_qs
 
-from server.config import VIDEOS_DIR
+from server.config import VIDEOS_DIR, COMPRESSION_ENABLED
 from server.repository import load_library, save_library, find_video, get_all_tags, update_tags_system
 from server.services.downloader import download_video, progress_store
 from server.services.transcriber import transcribe_video_file
 from server.services.analyzer import analyze_transcript, call_deepseek
+from server.services.compressor import process_video_dir, check_ffmpeg
 
 
 def handle_progress(handler):
@@ -214,6 +215,40 @@ def handle_process(handler, body: dict):
 
     _save_to_library(video_id, info, steps, transcript, script_stats,
                      ds_result if 'ds_result' in dir() else None)
+
+    # Step 5: 压缩视频 + 提取封面
+    if COMPRESSION_ENABLED and check_ffmpeg():
+        try:
+            progress_store[video_id] = {"percent": 90, "status": "compressing", "step": "compress"}
+            comp_result = process_video_dir(video_dir)
+            if comp_result:
+                lib = load_library()
+                find_video(lib, video_id)
+                # 更新 library 中所有 videos 的压缩字段（先找到再更新）
+                for v in lib.get("videos", []):
+                    if v.get("id") == video_id:
+                        v["compressed"] = True
+                        v["original_size_mb"] = comp_result["original_size_mb"]
+                        v["compressed_size_mb"] = comp_result["compressed_size_mb"]
+                        v["compression_ratio"] = comp_result["ratio"]
+                        v["has_cover"] = comp_result["has_cover"]
+                        if comp_result["has_cover"]:
+                            v["cover_file"] = comp_result["cover_file"]
+                        break
+                save_library(lib)
+                steps.append({"step": "compression", "status": "done", "comp": comp_result})
+                print(f"[pipeline] 压缩完成: "
+                      f"{comp_result['original_size_mb']}MB → {comp_result['compressed_size_mb']}MB "
+                      f"({comp_result['ratio'] * 100:.0f}%)")
+            else:
+                steps.append({"step": "compression", "status": "skipped", "reason": "无 mp4 文件"})
+        except Exception as e:
+            traceback.print_exc()
+            steps.append({"step": "compression", "status": "error", "error": str(e)})
+            print(f"[pipeline] 压缩失败: {e}")
+    else:
+        steps.append({"step": "compression", "status": "skipped", "reason": "压缩未启用或 FFmpeg 不可用"})
+
     print(f"[pipeline] ═══ 完成, 总耗时 {time.time()-pipe_t0:.1f}s ═══")
     _send_json(handler, {"status": "done", "steps": steps, "video_id": video_id})
 

@@ -37,7 +37,10 @@ function render(video) {
   h += '<h3 class="rk-detail-title">' + esc(video.title || '') + '</h3>';
   h += '<div class="rk-detail-row"><span class="rk-detail-label">作者</span><span>' + esc(video.author || '未知') + '</span></div>';
   h += '<div class="rk-detail-row"><span class="rk-detail-label">时长</span><span>' + durText + '</span></div>';
-  h += '<div class="rk-detail-row"><span class="rk-detail-label">播放量</span><span>' + formatPlay(video.play_count) + '</span></div>';
+  h += '<div class="rk-detail-row"><span class="rk-detail-label">播放</span><span>' + formatPlay(video.play_count) + '</span></div>';
+  h += '<div class="rk-detail-row"><span class="rk-detail-label">点赞</span><span>' + formatPlay(video.digg_count || 0) + '</span></div>';
+  h += '<div class="rk-detail-row"><span class="rk-detail-label">分享</span><span>' + formatPlay(video.share_count || 0) + '</span></div>';
+  h += '<div class="rk-detail-row"><span class="rk-detail-label">评论</span><span>' + formatPlay(video.comment_count || 0) + '</span></div>';
   h += '</div>';
 
   // 标签

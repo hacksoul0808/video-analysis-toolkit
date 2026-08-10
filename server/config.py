@@ -39,6 +39,15 @@ PORT = int(os.environ.get("PORT", 8840))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 VIDEOS_DIR.mkdir(parents=True, exist_ok=True)
 
+# ── 视频压缩配置 ──────────────────────────────────
+COMPRESSION_ENABLED = True        # 是否启用压缩
+COMPRESSION_RESOLUTION = "480p"   # 目标分辨率
+COMPRESSION_CRF = 32              # H.265 CRF 值
+COMPRESSION_CODEC = "libx265"     # 编码器
+COMPRESSION_AUDIO_BITRATE = "64k" # 音频码率
+EXTRACT_COVER_ENABLED = True      # 是否提取封面
+COVER_TIME_OFFSET = "00:00:01"    # 封面截取时间点
+
 # ── AI 分析关键词 ──────────────────────────────────
 AI_KEYWORDS = [
     "transformer", "attention", "模型", "训练", "推理", "参数",

@@ -62,97 +62,246 @@ def _get_cache_age_seconds(platform: str) -> float | None:
 
 
 # ═══════════════════════════════════════════════════════
-# 排行采集核心
+# 排行采集核心 — 爆款视频（非热搜新闻）
 # ═══════════════════════════════════════════════════════
 
-def _fetch_douyin_hot() -> dict:
-    """采集抖音热榜数据。返回 {"videos": [...], "error": str|None}"""
+# 爆款视频常用搜索词（内容类，非新闻类）
+_VIRAL_SEARCH_KEYWORDS = [
+    "搞笑", "日常", "剧情", "反转", "挑战",
+    "教程", "干货", "冷知识", "测评", "对比",
+    "推荐", "好物", "穿搭", "美食", "旅行",
+    "情感", "职场", "成长", "创业", "治愈",
+]
+
+_COMMON_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "Referer": "https://www.douyin.com/",
+    "Accept": "application/json, text/plain, */*",
+}
+
+
+def _viral_score(stats: dict) -> float:
+    """计算综合爆款指数（点赞3分 + 分享5分 + 评论2分 + 收藏1分 + 播放1分）。"""
+    digg = stats.get("digg_count", 0) or 0
+    share = stats.get("share_count", 0) or 0
+    comment = stats.get("comment_count", 0) or 0
+    collect = stats.get("collect_count", 0) or 0
+    play = stats.get("play_count", 0) or 0
+    return digg * 3 + share * 5 + comment * 2 + collect * 1 + play * 0.1
+
+
+def _get_hot_keywords() -> list[str]:
+    """从热搜榜获取当前热点关键词（内容向过滤）。"""
     try:
         import urllib.request
         import urllib.parse
 
-        url = "https://www.douyin.com/aweme/v1/web/hot/search/list/"
-        params = {
-            "detail_list": "1",
-            "source": "6",
-            "board_type": "0",
-            "board_sub_type": "",
+        url = "https://www.douyin.com/aweme/v1/web/hot/search/list/?"
+        url += urllib.parse.urlencode({
+            "detail_list": "1", "source": "6",
+            "board_type": "0", "board_sub_type": "",
+            "version_code": "170400", "version_name": "17.4.0",
+            "device_platform": "webapp", "aid": "6383",
+            "channel": "channel_pc_web",
+        })
+        req = urllib.request.Request(url, headers={
+            **_COMMON_HEADERS, "Referer": "https://www.douyin.com/discover"
+        })
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
+        word_list = data.get("data", {}).get("word_list", [])
+        keywords = []
+        # 新闻过滤词
+        news_filter = {"地震", "死亡", "事故", "火灾", "暴雨", "台风", "官方", "通报",
+                       "政策", "习近平", "主席", "总理", "会议", "发布", "声明"}
+        for item in word_list[:30]:
+            word = item.get("word", "")
+            if len(word) < 2:
+                continue
+            # 跳过纯新闻/时政
+            if any(f in word for f in news_filter):
+                continue
+            keywords.append(word)
+        return keywords[:15] if keywords else _VIRAL_SEARCH_KEYWORDS[:10]
+    except Exception:
+        return _VIRAL_SEARCH_KEYWORDS[:10]
+
+
+def _search_videos(keyword: str, count: int = 15) -> list[dict]:
+    """按关键词搜索视频（最多点赞 + ≤1分钟）。返回 aweme 列表。"""
+    try:
+        import urllib.request
+        import urllib.parse
+
+        url = "https://www.douyin.com/aweme/v1/web/search/item/?"
+        url += urllib.parse.urlencode({
+            "keyword": keyword,
+            "search_channel": "aweme_video_web",
+            "enable_history": "1",
+            "search_source": "switch_tab",
+            "query_correct_type": "1",
+            "is_filter_search": "1",
+            "sort_type": "1",           # 最多点赞
+            "filter_duration": "0-1",   # 1分钟以内
+            "offset": "0",
+            "count": str(count),
             "version_code": "170400",
             "version_name": "17.4.0",
             "device_platform": "webapp",
             "aid": "6383",
+        })
+        req = urllib.request.Request(url, headers={
+            **_COMMON_HEADERS,
+            "Referer": f"https://www.douyin.com/search/{urllib.parse.quote(keyword)}?type=video"
+        })
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        return data.get("data", []) or []
+    except Exception:
+        return []
+
+
+def _extract_video_info(aweme: dict, rank_base: int) -> dict | None:
+    """从 aweme 对象提取排行所需的字段。"""
+    aweme_id = str(aweme.get("aweme_id", ""))
+    if not aweme_id:
+        return None
+    duration = aweme.get("duration", 0) // 1000 if aweme.get("duration") else 0
+    if duration > 60:
+        return None
+
+    stats = aweme.get("statistics", {})
+    author_info = aweme.get("author", {})
+    video_info = aweme.get("video", {})
+    cover_info = video_info.get("cover", {}) if video_info else {}
+    url_list = cover_info.get("url_list", []) if cover_info else []
+    desc = aweme.get("desc", "") or aweme.get("preview_title", "")
+    text_extra = aweme.get("text_extra", []) or []
+
+    return {
+        "id": aweme_id,
+        "rank": rank_base,
+        "title": desc[:200],
+        "author": author_info.get("nickname", "未知作者") if author_info else "未知作者",
+        "play_count": stats.get("play_count", 0) or 0,
+        "digg_count": stats.get("digg_count", 0) or 0,
+        "share_count": stats.get("share_count", 0) or 0,
+        "comment_count": stats.get("comment_count", 0) or 0,
+        "collect_count": stats.get("collect_count", 0) or 0,
+        "duration_sec": duration,
+        "cover_url": url_list[0] if url_list else "",
+        "tags": [t.get("hashtag_name", "") or t.get("tag_name", "") for t in text_extra if
+                 t.get("hashtag_name") or t.get("tag_name")][:5],
+        "platform": "douyin",
+        "share_url": aweme.get("share_url", "") or f"https://www.douyin.com/video/{aweme_id}",
+    }
+
+
+def _fetch_douyin_viral() -> dict:
+    """采集抖音爆款视频。
+    
+    策略：
+    1. 从热搜 API 获取当前热点话题（含自带的视频数据 aweme_infos）
+    2. 新闻/时政类话题直接丢弃，只保留内容向话题
+    3. 如果某个话题没有附带视频，用视频搜索 API 补充（需 Cookie）
+    4. 按综合爆款指数排序（点赞x3 + 分享x5 + 评论x2 + 收藏x1）
+    """
+    print(f"[ranking {time.strftime('%H:%M:%S')}] 获取热搜视频...")
+    try:
+        import urllib.request
+        import urllib.parse
+
+        url = "https://www.douyin.com/aweme/v1/web/hot/search/list/?"
+        url += urllib.parse.urlencode({
+            "detail_list": "1", "source": "6",
+            "board_type": "0", "board_sub_type": "",
+            "version_code": "170400", "version_name": "17.4.0",
+            "device_platform": "webapp", "aid": "6383",
             "channel": "channel_pc_web",
-        }
-        full_url = url + "?" + urllib.parse.urlencode(params)
-        req = urllib.request.Request(full_url, headers={
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
-            "Referer": "https://www.douyin.com/discover",
-            "Accept": "application/json, text/plain, */*",
+        })
+        req = urllib.request.Request(url, headers={
+            **_COMMON_HEADERS, "Referer": "https://www.douyin.com/discover"
         })
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode("utf-8"))
 
         word_list = data.get("data", {}).get("word_list", [])
         if not word_list:
-            return {"videos": [], "error": "抖音热榜 API 返回数据为空（可能需要 Cookie 认证）"}
+            return {"videos": [], "error": "热搜 API 返回为空"}
 
-        videos = []
-        for idx, item in enumerate(word_list[:100]):
-            hot_value = item.get("hot_value", 0)
+        # 新闻/时政/负面话题过滤词
+        news_filter = {
+            "地震", "死亡", "事故", "火灾", "暴雨", "台风", "官方", "通报",
+            "政策", "习近平", "主席", "总理", "会议", "发布", "声明", "A股",
+            "创新药", "药物", "飓风", "风暴", "预警", "灾害", "遇难",
+            "GDP", "财政", "经济数据", "汇率", "涨停", "跌停", "基金",
+            "气象", "降水", "洪水", "坍塌", "爆炸", "枪击", "拘捕",
+            "白海豚", "热带风暴", "逝世", "遗体", "悼念",
+        }
+
+        seen_ids: set[str] = set()
+        all_videos: list[dict] = []
+
+        for item in word_list:
             word = item.get("word", "")
-            aweme_infos = item.get("aweme_infos") or []
-            # 取第一个关联视频的信息
-            if aweme_infos:
-                aweme = aweme_infos[0].get("aweme_info", {})
-                video_id = str(aweme.get("aweme_id", ""))
-                title = aweme.get("desc", word)[:200]
-                author_info = aweme.get("author", {})
-                author = author_info.get("nickname", "") if author_info else ""
-                duration = aweme.get("duration", 0) // 1000 if aweme.get("duration") else 0
-                cover_url = ""
-                video_cover = aweme.get("video", {}).get("cover", {})
-                if video_cover:
-                    url_list = video_cover.get("url_list", [])
-                    cover_url = url_list[0] if url_list else ""
-                stats = aweme.get("statistics", {})
-                play_count = stats.get("play_count", hot_value)
-                share_url = aweme.get("share_url", "") or f"https://www.douyin.com/video/{video_id}"
-                tags = [t.get("tag_name", "") for t in aweme.get("text_extra", []) if t.get("tag_name")]
-            else:
-                video_id = f"hot_{idx}_{int(time.time())}"
-                title = word[:200]
-                author = ""
-                duration = 0
-                cover_url = ""
-                play_count = hot_value
-                share_url = f"https://www.douyin.com/search/{urllib.parse.quote(word)}"
-                tags = []
-
-            # 过滤 <=60s
-            if duration > 0 and duration > 60:
+            if len(word) < 2:
+                continue
+            # 新闻过滤
+            if any(f in word for f in news_filter):
                 continue
 
-            videos.append({
-                "id": video_id,
-                "rank": idx + 1,
-                "title": title or word,
-                "author": author or "未知作者",
-                "play_count": play_count or hot_value,
-                "duration_sec": duration,
-                "cover_url": cover_url,
-                "tags": tags[:5],
-                "platform": "douyin",
-                "share_url": share_url,
-            })
+            aweme_infos = item.get("aweme_infos") or []
+            if not aweme_infos:
+                continue
 
-        # 按播放量降序
-        videos.sort(key=lambda v: v["play_count"], reverse=True)
-        for i, v in enumerate(videos):
+            for entry in aweme_infos[:3]:  # 每个话题最多取3个视频
+                aweme = entry.get("aweme_info", {})
+                info = _extract_video_info(aweme, 0)
+                if info and info["id"] not in seen_ids:
+                    seen_ids.add(info["id"])
+                    all_videos.append(info)
+
+        # 如果热搜没有带回足够的视频，尝试用固定关键词搜索
+        if len(all_videos) < 20:
+            print(f"[ranking {time.strftime('%H:%M:%S')}] 热搜视频不足({len(all_videos)}条)，补充搜索...")
+            for kw in _VIRAL_SEARCH_KEYWORDS[:8]:
+                aweme_list = _search_videos(kw, count=8)
+                for aweme in aweme_list:
+                    info = _extract_video_info(aweme, 0)
+                    if info and info["id"] not in seen_ids:
+                        seen_ids.add(info["id"])
+                        all_videos.append(info)
+                time.sleep(0.3)
+                if len(all_videos) >= 100:
+                    break
+
+        if not all_videos:
+            return {"videos": [], "error": "未找到符合条件的爆款视频，请稍后刷新"}
+
+        # 按爆款指数排序
+        all_videos.sort(key=lambda v: _viral_score({
+            "digg_count": v["digg_count"],
+            "share_count": v["share_count"],
+            "comment_count": v["comment_count"],
+            "collect_count": v["collect_count"],
+            "play_count": v["play_count"],
+        }), reverse=True)
+
+        # 取 Top 100，重新标排名
+        all_videos = all_videos[:100]
+        for i, v in enumerate(all_videos):
             v["rank"] = i + 1
 
-        return {"videos": videos, "error": None}
+        error = None
+        if len(all_videos) < 20:
+            error = f"仅获取到 {len(all_videos)} 个爆款视频，建议稍后刷新"
+
+        print(f"[ranking {time.strftime('%H:%M:%S')}] 爆款采集完成: {len(all_videos)} 条")
+        return {"videos": all_videos, "error": error}
+
     except Exception as e:
-        return {"videos": [], "error": f"抖音 API 请求失败: {str(e)}"}
+        return {"videos": [], "error": f"采集失败: {str(e)}"}
 
 
 def _fetch_tiktok_trending() -> dict:
@@ -167,7 +316,7 @@ def _fetch_tiktok_trending() -> dict:
 # ═══════════════════════════════════════════════════════
 
 _FETCHERS = {
-    "douyin": _fetch_douyin_hot,
+    "douyin": _fetch_douyin_viral,
     "tiktok": _fetch_tiktok_trending,
 }
 

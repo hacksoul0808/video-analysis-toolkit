@@ -180,6 +180,19 @@ def handle_video_resource(handler):
         else:
             _send_json(handler, {"char_count": 0, "chars_per_min": 0, "ai_keywords": 0, "emotion_keywords": 0, "tech_keywords": 0})
 
+    elif sub_resource == "cover":
+        cover_path = video_dir / "cover.jpg"
+        if cover_path.exists():
+            handler.send_response(200)
+            handler.send_header("Content-Type", "image/jpeg")
+            handler.send_header("Content-Length", str(cover_path.stat().st_size))
+            handler.send_header("Cache-Control", "public, max-age=3600")
+            handler.end_headers()
+            with open(cover_path, "rb") as f:
+                handler.wfile.write(f.read())
+        else:
+            handler.send_error(404, "Cover not found")
+
     else:
         _send_json(handler, {"error": "Invalid video resource"}, 400)
 

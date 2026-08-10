@@ -63,7 +63,7 @@ function render() {
     h += '</div>';
     h += '<div class="rk-col-title"><span class="rk-title-text" onclick="selectRankingDetail(\'' + v.id + '\')">' + escTitle + '</span></div>';
     h += '<div class="rk-col-dur">' + dur + '</div>';
-    h += '<div class="rk-col-play">' + fmtPlay(v.play_count) + '</div>';
+    h += '<div class="rk-col-play">' + fmtPlay(v.digg_count || v.play_count) + '</div>';
     h += '</div>';
   }
   container.innerHTML = h;

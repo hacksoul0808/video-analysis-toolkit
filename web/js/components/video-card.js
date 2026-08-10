@@ -79,7 +79,8 @@ export function renderGrid(videos, selectMode, selected) {
     h += '<button class="card-del" onclick="event.stopPropagation();confirmDeleteVideo(\'' + v.id + '\',\'' + esc((v.title || v.id).substring(0, 40)) + '\')" title="删除">\u00D7</button>';
     h += '<div class="card-media">';
     if (st || v.download_status === 'done') {
-      h += '<video class="card-video" src="/api/video-file/' + v.id + '" muted loop playsinline preload="none" disableRemotePlayback onmouseenter="previewPlay(this)" onmouseleave="previewStop(this)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"></video>';
+      const poster = (v.has_cover && v.cover_file) ? ' poster="/api/video/cover/' + v.id + '"' : '';
+      h += '<video class="card-video" src="/api/video-file/' + v.id + '"' + poster + ' muted loop playsinline preload="none" disableRemotePlayback onmouseenter="previewPlay(this)" onmouseleave="previewStop(this)" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"></video>';
       h += '<span class="card-media-symbol" style="display:none">&#9670;</span>';
     } else {
       h += '<span class="card-media-symbol">&#9670;</span>';
