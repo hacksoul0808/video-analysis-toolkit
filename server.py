@@ -37,6 +37,9 @@ def _load_env():
 
 _load_env()
 
+# 离线模式：所有模型/Tokenizer 均从本地加载，不访问 HuggingFace Hub
+os.environ["HF_HUB_OFFLINE"] = "1"
+
 # ── Paths ──────────────────────────────────────────
 BASE_DIR = Path(__file__).parent
 LIBRARY_DIR = BASE_DIR / "library"
@@ -198,18 +201,10 @@ def transcribe_video_file(video_path, output_json_path, progress_callback=None):
         print(f"[server {time.strftime('%H:%M:%S')}] torch check failed: {e}")
         cuda_ok = False
 
-    # 设置 HuggingFace 镜像（国内加速）
-    hf_endpoint = os.environ.get("HF_ENDPOINT", "")
-    if not hf_endpoint:
-        # 自动尝试国内镜像
-        hf_mirror = "https://hf-mirror.com"
-        os.environ["HF_ENDPOINT"] = hf_mirror
-        print(f"[server {time.strftime('%H:%M:%S')}] 设置 HF_ENDPOINT={hf_mirror}")
-
     device = "cuda" if cuda_ok else "cpu"
     compute_type = "float16" if cuda_ok else "int8"
 
-    print(f"[server {time.strftime('%H:%M:%S')}] 加载 faster-whisper 模型 small, device={device}, compute_type={compute_type}")
+    print(f"[server {time.strftime('%H:%M:%S')}] 加载 faster-whisper 模型 large-v3-turbo, device={device}, compute_type={compute_type}")
     from faster_whisper import WhisperModel
 
     try:
