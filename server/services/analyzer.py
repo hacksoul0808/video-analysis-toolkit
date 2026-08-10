@@ -48,7 +48,7 @@ def _clean_tags(raw_tags: list[str]) -> list[str]:
         # 跳过空值、纯符号、占位符、超长标签
         if not t or len(t) < 2 or len(t) > 15:
             continue
-        if t.startswith("{") and t.endswith("}"):
+        if t.startswith("{"):
             continue
         if t in ("#", "##", "###", "## ", "# #"):
             continue

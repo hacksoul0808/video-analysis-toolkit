@@ -11,21 +11,14 @@
       "analysis_status": "done",
       "deepseek_status": "done",
       "tags": [
-        "#",
-        "#",
-        "##",
-        "##",
-        "#",
-        "#",
-        "#",
-        "AI",
         "教程向",
-        "实用技巧",
-        "认知升级",
         "收藏向",
-        "5-8分钟"
+        "AI",
+        "实用技巧",
+        "5-8分钟",
+        "认知升级"
       ],
-      "viral_score": 100,
+      "viral_score": 56,
       "metrics": {},
       "script_stats": {
         "char_count": 1401,
@@ -54,27 +47,16 @@
       "analysis_status": "done",
       "deepseek_status": "done",
       "tags": [
-        "#",
-        "{领域标签}`",
-        "剪辑接单",
-        "#",
-        "##",
-        "{标签1}",
-        "{标签2}`",
-        "{垂直标签}`",
-        "{标签}`",
-        "##",
-        "#",
-        "#",
-        "#",
+        "话题1",
+        "话题2",
         "教程向",
         "实用技巧",
+        "认知升级",
         "3分钟以内",
         "优质",
-        "幽默",
-        "认知升级"
+        "幽默"
       ],
-      "viral_score": 100,
+      "viral_score": 50,
       "metrics": {},
       "script_stats": {
         "char_count": 125,
@@ -103,21 +85,14 @@
       "analysis_status": "done",
       "deepseek_status": "done",
       "tags": [
-        "#",
-        "#",
-        "##",
-        "##",
-        "#",
-        "#",
-        "#",
         "AI",
         "教程向",
-        "实用技巧",
         "收藏向",
-        "爆款",
-        "认知升级"
+        "实用技巧",
+        "5-8分钟",
+        "爆款"
       ],
-      "viral_score": 100,
+      "viral_score": 71,
       "metrics": {},
       "script_stats": {
         "char_count": 1262,
@@ -146,13 +121,9 @@
       "analysis_status": "done",
       "deepseek_status": "done",
       "tags": [
-        "#",
-        "#",
-        "##",
-        "##",
-        "#",
-        "#",
-        "#",
+        "自媒体",
+        "干货分享",
+        "豆包电脑版",
         "教程向",
         "收藏向",
         "AI",
@@ -160,7 +131,7 @@
         "爆款",
         "3分钟以内"
       ],
-      "viral_score": 100,
+      "viral_score": 62,
       "metrics": {},
       "script_stats": {
         "char_count": 638,
@@ -179,5 +150,5 @@
       "duration_sec": 115.8
     }
   ],
-  "updated_at": "2026-08-10T11:14:55"
+  "updated_at": "2026-08-10T11:22:54"
 }
