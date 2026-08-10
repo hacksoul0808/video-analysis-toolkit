@@ -159,8 +159,26 @@ function renderInfo(msg) {
   container.innerHTML = '<div class="ranking-empty" style="padding:40px 20px;text-align:center;color:var(--color-text-muted)">' + esc(msg) + '</div>';
 }
 
+function renderCookieNeeded(errorMsg) {
+  const container = document.getElementById('ranking-table-body');
+  if (!container) return;
+  const safeMsg = esc(errorMsg || '需要配置抖音 Cookie 才能获取爆款视频');
+  container.innerHTML =
+    '<div class="ranking-cookie-hint">' +
+    '<div class="ranking-cookie-icon">&#128274;</div>' +
+    '<h3 class="ranking-cookie-title">需要配置抖音 Cookie</h3>' +
+    '<p class="ranking-cookie-desc">' + safeMsg.replace(/\n/g, '<br>') + '</p>' +
+    '<div class="ranking-cookie-steps">' +
+    '<div class="rk-step"><span class="rk-step-num">1</span> 浏览器打开并登录 <a href="https://www.douyin.com" target="_blank">douyin.com</a></div>' +
+    '<div class="rk-step"><span class="rk-step-num">2</span> 按 F12 → Application → Cookies → 复制所有 cookie 值</div>' +
+    '<div class="rk-step"><span class="rk-step-num">3</span> 在项目根目录 <code>.env</code> 中添加 <code>DOUYIN_COOKIE=你的cookie</code></div>' +
+    '<div class="rk-step"><span class="rk-step-num">4</span> 重启服务即可</div>' +
+    '</div>' +
+    '</div>';
+}
+
 export const RankingTable = {
-  render, renderSkeletons, renderError, renderInfo,
+  render, renderSkeletons, renderError, renderInfo, renderCookieNeeded,
   prevPage, nextPage, toggleSelectAll, toggleSelect, selectDetail,
   updateToolbar, onSelectDetail,
 };

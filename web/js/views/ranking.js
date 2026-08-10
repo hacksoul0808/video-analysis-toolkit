@@ -28,7 +28,12 @@ async function loadRanking() {
     r.selectedDetail = null;
 
     if (data.error && r.data.length === 0) {
-      RankingTable.renderInfo('该平台排行暂不可用: ' + data.error + '<br><button class="btn btn-ghost btn-sm" onclick="retryLoadRanking()" style="margin-top:12px">刷新排行</button>');
+      const isCookieError = data.error.includes('Cookie') || data.error.includes('Cookie');
+      if (isCookieError) {
+        RankingTable.renderCookieNeeded(data.error);
+      } else {
+        RankingTable.renderInfo('该平台排行暂不可用: ' + data.error + '<br><button class="btn btn-ghost btn-sm" onclick="retryLoadRanking()" style="margin-top:12px">刷新排行</button>');
+      }
     } else {
       RankingTable.render();
       if (r.isStale && isStaleEl) {

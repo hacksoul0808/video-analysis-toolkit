@@ -2,6 +2,7 @@
 排行榜服务：排行数据采集 + 缓存 + 批量下载队列。
 """
 import json
+import os
 import time
 import threading
 from datetime import datetime, timezone
@@ -14,6 +15,10 @@ from server.repository import load_library, save_library, find_video
 RANKING_CACHE_FILE = DATA_DIR / "ranking_cache.json"
 RANKING_CACHE_TTL_SECONDS = 30 * 60      # 30分钟
 RANKING_CACHE_MAX_AGE_SECONDS = 2 * 60 * 60  # 2小时
+
+# ── Cookie 配置 ──
+DOUYIN_COOKIE = os.environ.get("DOUYIN_COOKIE", "").strip()
+HAS_COOKIE = bool(DOUYIN_COOKIE)
 
 # ── 批量下载队列 (模块级，进程内共享) ──
 _batch_queues: dict[str, dict] = {}       # key: platform, value: { total, completed, downloading, failed, items, updated_at }
@@ -78,6 +83,10 @@ _COMMON_HEADERS = {
     "Referer": "https://www.douyin.com/",
     "Accept": "application/json, text/plain, */*",
 }
+
+# 如果配置了Cookie，加到请求头
+if HAS_COOKIE:
+    _COMMON_HEADERS["Cookie"] = DOUYIN_COOKIE
 
 
 def _viral_score(stats: dict) -> float:
@@ -201,107 +210,50 @@ def _extract_video_info(aweme: dict, rank_base: int) -> dict | None:
 def _fetch_douyin_viral() -> dict:
     """采集抖音爆款视频。
     
-    策略：
-    1. 从热搜 API 获取当前热点话题（含自带的视频数据 aweme_infos）
-    2. 新闻/时政类话题直接丢弃，只保留内容向话题
-    3. 如果某个话题没有附带视频，用视频搜索 API 补充（需 Cookie）
-    4. 按综合爆款指数排序（点赞x3 + 分享x5 + 评论x2 + 收藏x1）
+    有 Cookie：直接按热门内容关键词搜索视频，按爆款指数排序。
+    无 Cookie：热搜 API 无法返回视频数据，提示配置 Cookie。
     """
-    print(f"[ranking {time.strftime('%H:%M:%S')}] 获取热搜视频...")
-    try:
-        import urllib.request
-        import urllib.parse
-
-        url = "https://www.douyin.com/aweme/v1/web/hot/search/list/?"
-        url += urllib.parse.urlencode({
-            "detail_list": "1", "source": "6",
-            "board_type": "0", "board_sub_type": "",
-            "version_code": "170400", "version_name": "17.4.0",
-            "device_platform": "webapp", "aid": "6383",
-            "channel": "channel_pc_web",
-        })
-        req = urllib.request.Request(url, headers={
-            **_COMMON_HEADERS, "Referer": "https://www.douyin.com/discover"
-        })
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-
-        word_list = data.get("data", {}).get("word_list", [])
-        if not word_list:
-            return {"videos": [], "error": "热搜 API 返回为空"}
-
-        # 新闻/时政/负面话题过滤词
-        news_filter = {
-            "地震", "死亡", "事故", "火灾", "暴雨", "台风", "官方", "通报",
-            "政策", "习近平", "主席", "总理", "会议", "发布", "声明", "A股",
-            "创新药", "药物", "飓风", "风暴", "预警", "灾害", "遇难",
-            "GDP", "财政", "经济数据", "汇率", "涨停", "跌停", "基金",
-            "气象", "降水", "洪水", "坍塌", "爆炸", "枪击", "拘捕",
-            "白海豚", "热带风暴", "逝世", "遗体", "悼念",
+    if not HAS_COOKIE:
+        return {
+            "videos": [],
+            "error": "需要配置抖音 Cookie 才能获取爆款视频。请在 .env 中设置 DOUYIN_COOKIE=你的Cookie值，然后重启服务。\n\n获取方式：浏览器登录 douyin.com → F12 → Application → Cookies → 复制所有 cookie 值。"
         }
 
-        seen_ids: set[str] = set()
-        all_videos: list[dict] = []
+    print(f"[ranking {time.strftime('%H:%M:%S')}] 搜索爆款视频...")
+    seen_ids: set[str] = set()
+    all_videos: list[dict] = []
 
-        for item in word_list:
-            word = item.get("word", "")
-            if len(word) < 2:
-                continue
-            # 新闻过滤
-            if any(f in word for f in news_filter):
-                continue
+    # 按内容类关键词搜索热门视频
+    for kw in _VIRAL_SEARCH_KEYWORDS:
+        aweme_list = _search_videos(kw, count=15)
+        for aweme in aweme_list:
+            info = _extract_video_info(aweme, 0)
+            if info and info["id"] not in seen_ids:
+                seen_ids.add(info["id"])
+                all_videos.append(info)
+        time.sleep(0.3)
+        if len(all_videos) >= 200:
+            break
 
-            aweme_infos = item.get("aweme_infos") or []
-            if not aweme_infos:
-                continue
+    if not all_videos:
+        return {"videos": [], "error": "视频搜索未返回结果，请检查 Cookie 是否有效（可能已过期）。"}
 
-            for entry in aweme_infos[:3]:  # 每个话题最多取3个视频
-                aweme = entry.get("aweme_info", {})
-                info = _extract_video_info(aweme, 0)
-                if info and info["id"] not in seen_ids:
-                    seen_ids.add(info["id"])
-                    all_videos.append(info)
+    # 按爆款指数排序
+    all_videos.sort(key=lambda v: _viral_score({
+        "digg_count": v["digg_count"],
+        "share_count": v["share_count"],
+        "comment_count": v["comment_count"],
+        "collect_count": v["collect_count"],
+        "play_count": v["play_count"],
+    }), reverse=True)
 
-        # 如果热搜没有带回足够的视频，尝试用固定关键词搜索
-        if len(all_videos) < 20:
-            print(f"[ranking {time.strftime('%H:%M:%S')}] 热搜视频不足({len(all_videos)}条)，补充搜索...")
-            for kw in _VIRAL_SEARCH_KEYWORDS[:8]:
-                aweme_list = _search_videos(kw, count=8)
-                for aweme in aweme_list:
-                    info = _extract_video_info(aweme, 0)
-                    if info and info["id"] not in seen_ids:
-                        seen_ids.add(info["id"])
-                        all_videos.append(info)
-                time.sleep(0.3)
-                if len(all_videos) >= 100:
-                    break
+    # 取 Top 100，重新标排名
+    all_videos = all_videos[:100]
+    for i, v in enumerate(all_videos):
+        v["rank"] = i + 1
 
-        if not all_videos:
-            return {"videos": [], "error": "未找到符合条件的爆款视频，请稍后刷新"}
-
-        # 按爆款指数排序
-        all_videos.sort(key=lambda v: _viral_score({
-            "digg_count": v["digg_count"],
-            "share_count": v["share_count"],
-            "comment_count": v["comment_count"],
-            "collect_count": v["collect_count"],
-            "play_count": v["play_count"],
-        }), reverse=True)
-
-        # 取 Top 100，重新标排名
-        all_videos = all_videos[:100]
-        for i, v in enumerate(all_videos):
-            v["rank"] = i + 1
-
-        error = None
-        if len(all_videos) < 20:
-            error = f"仅获取到 {len(all_videos)} 个爆款视频，建议稍后刷新"
-
-        print(f"[ranking {time.strftime('%H:%M:%S')}] 爆款采集完成: {len(all_videos)} 条")
-        return {"videos": all_videos, "error": error}
-
-    except Exception as e:
-        return {"videos": [], "error": f"采集失败: {str(e)}"}
+    print(f"[ranking {time.strftime('%H:%M:%S')}] 爆款采集完成: {len(all_videos)} 条")
+    return {"videos": all_videos, "error": None}
 
 
 def _fetch_tiktok_trending() -> dict:

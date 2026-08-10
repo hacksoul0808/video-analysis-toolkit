@@ -180,6 +180,23 @@
 .ranking-error { padding:32px 20px; text-align:center; }
 .ranking-error-msg { color:var(--color-danger); font-size:.84rem; margin-bottom:12px; }
 
+/* ── Cookie Needed Hint ── */
+.ranking-cookie-hint {
+  padding:32px 24px; text-align:center;
+}
+.ranking-cookie-icon { font-size:3rem; margin-bottom:12px; opacity:.6; }
+.ranking-cookie-title { font-size:1.1rem; font-weight:600; margin-bottom:10px; color:var(--color-text); }
+.ranking-cookie-desc { font-size:.84rem; color:var(--color-text-muted); margin-bottom:20px; line-height:1.6; white-space:pre-line; }
+.ranking-cookie-steps { text-align:left; max-width:480px; margin:0 auto; }
+.rk-step { font-size:.82rem; color:var(--color-text-muted); padding:8px 0; border-bottom:1px solid var(--color-border); display:flex; align-items:center; gap:10px; }
+.rk-step:last-child { border-bottom:none; }
+.rk-step-num {
+  width:24px; height:24px; border-radius:50%; background:var(--color-accent); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:.72rem; font-weight:600; flex-shrink:0;
+}
+.rk-step code { background:var(--color-bg); padding:2px 6px; border-radius:4px; font-size:.76rem; color:var(--color-accent); }
+.rk-step a { color:var(--color-accent); }
+
 /* ── Ranking Pagination ── */
 .ranking-pagination {
   display:flex; align-items:center; justify-content:center; gap:12px;
