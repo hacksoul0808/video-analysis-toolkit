@@ -1,0 +1,25 @@
+/* base.css - Video Script Analyzer */
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100dvh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--color-border-hover); border-radius:10px; }
+
+/* ── Typography Scale ── */
+h1,h2,h3,h4 { font-family:var(--font-display); letter-spacing:-0.02em; }
+.display { font-size:clamp(1.5rem, 3vw, 2rem); font-weight:700; letter-spacing:-0.03em; line-height:1.1; text-wrap:balance; }
+.heading { font-size:1.15rem; font-weight:600; color:#f1f5f9; }
+.caption { font-size:.75rem; color:var(--color-text-muted); letter-spacing:.02em; text-transform:uppercase; font-weight:500; }

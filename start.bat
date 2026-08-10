@@ -8,7 +8,7 @@ echo ========================================
 echo.
 
 echo Starting API server (port 8840)...
-start "API Server" python server.py
+start "API Server" python server/server.py
 
 timeout /t 2 /nobreak >nul
 

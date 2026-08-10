@@ -1,0 +1,102 @@
+/* views.css - Video Script Analyzer */
+
+/* ── Page Layout ── */
+.page { max-width:1360px; margin:0 auto; padding:28px 32px; }
+.page-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px; gap:16px; }
+
+/* ── Header Bar ── */
+.app-bar {
+  position: sticky; top:0; z-index:100;
+  background: rgba(8,11,13,.82); backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 32px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.app-bar-brand { font-family:var(--font-display); font-size:1.1rem; font-weight:700; color:#f1f5f9; letter-spacing:-0.02em; }
+.app-bar-brand span { color:var(--color-accent); }
+.app-bar-nav { display:flex; gap:2px; }
+.app-bar-nav button {
+  background:transparent; color:var(--color-text-muted); border:none;
+  padding:8px 20px; border-radius:var(--radius-sm); font-size:.85rem;
+  font-family:var(--font-body); font-weight:500; cursor:pointer; transition:var(--transition-fast);
+}
+.app-bar-nav button:hover { color:var(--color-text); background:var(--color-surface-elevated); }
+.app-bar-nav button.active { color:var(--color-accent); background:var(--color-accent-dim); }
+
+/* ── Library View: Sort & Grid ── */
+.sort-row { display:flex; gap:6px; margin-bottom:20px; }
+.video-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+
+/* ── Library View: Search Bar ── */
+.search-bar { display:flex; gap:8px; margin-bottom:16px; align-items:center; }
+
+/* ── Library View: Multi-Select Bar ── */
+.multi-select-bar { display:none; align-items:center; gap:10px; padding:8px 0; margin-bottom:8px; }
+.multi-select-bar.show { display:flex; }
+
+/* ── Add Modal: Batch Toggle ── */
+.batch-toggle-row { display:flex; gap:6px; margin-bottom:14px; }
+.batch-toggle-row .btn { flex:1; }
+
+/* ── Detail View: Tabs ── */
+.detail-tabs { display:flex; gap:6px; padding:12px 24px; border-bottom:1px solid var(--color-border); }
+
+/* ── Detail View: Workflow Bar ── */
+.detail-workflow { display:flex; gap:8px; padding:0 24px 14px; flex-wrap:wrap; }
+
+/* ── Detail View: Action Bar ── */
+.detail-actions { display:flex; gap:8px; padding:0 24px 18px; flex-wrap:wrap; }
+.detail-actions .btn:disabled { opacity:.35; cursor:not-allowed; pointer-events:none; }
+
+/* ── Methodology View ── */
+.meta-grid { display:flex; flex-direction:column; gap:20px; }
+.meta-card {
+  background:var(--color-surface); border:1px solid var(--color-border);
+  border-radius:var(--radius-lg); padding:24px;
+}
+.meta-card h3 { font-family:var(--font-display); font-size:1.05rem; font-weight:600; margin-bottom:16px; color:#f1f5f9; }
+
+.hook-row { display:flex; gap:8px; flex-wrap:wrap; }
+.hook-badge { background:var(--color-accent-dim); color:var(--color-accent); padding:6px 14px; border-radius:100px; font-size:.78rem; font-weight:500; }
+
+.tpl-item {
+  background:var(--color-bg); padding:14px 18px; border-radius:var(--radius-sm);
+  margin-bottom:8px; font-size:.82rem; color:var(--color-text-muted);
+  border-left:3px solid var(--color-accent); font-family:var(--font-body);
+}
+
+.example-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 0; border-bottom:1px solid var(--color-border); cursor:pointer;
+  transition:color var(--transition-fast);
+}
+.example-row:hover { color:var(--color-accent); }
+.example-row:last-child { border-bottom:none; }
+
+/* ── Stats View ── */
+.kpi-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:26px; }
+.kpi-tile {
+  background:var(--color-surface); border:1px solid var(--color-border);
+  border-radius:var(--radius-lg); padding:20px; text-align:center;
+}
+.kpi-tile .num { font-family:var(--font-display); font-size:1.8rem; font-weight:700; letter-spacing:-.02em; }
+.kpi-tile .num.accent { color:var(--color-accent); }
+.kpi-tile .num.warn { color:var(--color-warning); }
+.kpi-tile .lbl { font-size:.72rem; color:var(--color-text-dim); margin-top:4px; }
+
+.chart-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:20px; }
+.chart-box {
+  background:var(--color-surface); border:1px solid var(--color-border);
+  border-radius:var(--radius-lg); padding:22px;
+}
+.chart-box h4 { font-family:var(--font-display); font-size:.9rem; font-weight:600; margin-bottom:16px; color:var(--color-text); }
+.chart-box canvas { max-height:280px; }
+
+/* ── Responsive ── */
+@media (max-width:720px) {
+  .page { padding:16px; }
+  .app-bar { padding:12px 16px; flex-wrap:wrap; gap:10px; }
+  .video-grid { grid-template-columns:1fr; }
+  .chart-row { grid-template-columns:1fr; }
+  .kpi-strip { grid-template-columns:repeat(2,1fr); }
+}

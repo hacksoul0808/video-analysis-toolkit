@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视频文案分析平台</title>
+<meta name="description" content="AI-powered video script analysis platform — download, transcribe, and discover viral content formulas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/design-tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/views.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<!-- ═══════════════════════ App Bar ═══════════════════════ -->
+<header class="app-bar">
+  <div class="app-bar-brand"><span>&#9670;</span> 文案分析平台</div>
+  <nav class="app-bar-nav">
+    <button class="active" onclick="switchView('library')">视频库</button>
+    <button onclick="switchView('methodology')">方法论</button>
+    <button onclick="switchView('stats')">统计</button>
+  </nav>
+</header>
+
+<!-- ═══════════════════════ Main Page ═══════════════════════ -->
+<main class="page">
+
+  <!-- ── VIEW: Library ── -->
+  <section id="view-library">
+    <div class="page-header">
+      <h1 class="display" id="lib-heading">视频库</h1>
+      <button class="btn btn-primary" onclick="openAddModal()">+ 添加视频</button>
+    </div>
+    <div class="tag-cloud" id="tag-cloud"></div>
+    <div class="sort-row" id="sort-row">
+      <button class="btn btn-ghost btn-sm active" onclick="sortBy('created_at',this)">按时间</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortBy('viral_score',this)">按爆款分</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortBy('likes',this)">按点赞</button>
+      <button class="btn btn-ghost btn-sm" onclick="sortBy('duration',this)">按时长</button>
+    </div>
+    <div class="search-bar">
+      <input class="search-input" id="search-input" placeholder="搜索标题或转写内容..." oninput="onSearchInput()">
+      <span class="search-clear" id="search-clear" onclick="clearSearch()">&times;</span>
+    </div>
+    <div class="multi-select-bar" id="multi-bar">
+      <span id="select-count" style="font-size:.82rem;color:var(--color-text-dim)">已选 0 个</span>
+      <button class="btn btn-primary btn-sm" onclick="batchAnalyze()" id="batch-analyze-btn" disabled>批量AI分析</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearSelection()">取消选择</button>
+    </div>
+    <div class="video-grid" id="video-grid"></div>
+  </section>
+
+  <!-- ── VIEW: Methodology ── -->
+  <section id="view-methodology" style="display:none">
+    <div class="page-header"><h1 class="display">方法论</h1></div>
+    <div id="meta-content"></div>
+  </section>
+
+  <!-- ── VIEW: Stats ── -->
+  <section id="view-stats" style="display:none">
+    <div class="page-header"><h1 class="display">统计看板</h1></div>
+    <div class="kpi-strip" id="kpi-strip"></div>
+    <div class="chart-row" id="chart-row"></div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════ Modal: Add ═══════════════════════ -->
+<div class="modal-backdrop" id="add-backdrop">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>添加视频</h3>
+      <button class="modal-close" onclick="closeAddModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="batch-toggle-row" id="add-mode-toggle">
+        <button class="btn btn-ghost btn-sm active" onclick="switchAddMode('single',this)">单个链接</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchAddMode('batch',this)">批量链接</button>
+        <button class="btn btn-ghost btn-sm" onclick="switchAddMode('import',this)">导入本地</button>
+      </div>
+      <div class="field" id="single-url-field">
+        <label class="field-label">视频链接</label>
+        <input class="field-input" id="add-url" placeholder="粘贴链接（支持抖音 / YouTube / B站...）" onkeydown="if(event.key==='Enter')startPipeline()">
+      </div>
+      <div class="field" id="batch-url-field" style="display:none">
+        <label class="field-label">视频链接（每行一个）</label>
+        <textarea class="batch-textarea" id="batch-urls" placeholder="https://v.douyin.com/xxx/&#10;https://www.bilibili.com/video/xxx&#10;https://www.youtube.com/watch?v=xxx" oninput="updateBatchCount()"></textarea>
+        <div class="batch-url-status" id="batch-url-count">0 个链接</div>
+      </div>
+      <div class="field" id="import-field" style="display:none">
+        <label class="field-label">可导入的视频</label>
+        <div id="import-list" style="max-height:250px;overflow-y:auto;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)"></div>
+        <div style="font-size:.76rem;color:var(--color-text-dim);margin-top:6px">通过 vdl.py 命令行下载的视频显示在此处</div>
+      </div>
+      <div class="field">
+        <label class="field-label">分析模式</label>
+        <div class="radio-stack">
+          <label class="radio-option selected" onclick="setMode('full',this)">
+            <input type="radio" name="mode" value="full" checked>
+            <div><div class="radio-label">全自动流水线</div><div class="radio-desc">下载 + 转写 + AI分析，一步完成</div></div>
+          </label>
+          <label class="radio-option" onclick="setMode('download_transcribe',this)">
+            <input type="radio" name="mode" value="download_transcribe">
+            <div><div class="radio-label">下载 + 转写</div><div class="radio-desc">稍后在详情页手动触发 AI 分析</div></div>
+          </label>
+          <label class="radio-option" onclick="setMode('download_only',this)">
+            <input type="radio" name="mode" value="download_only">
+            <div><div class="radio-label">仅下载</div><div class="radio-desc">加入队列，稍后统一处理</div></div>
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="start-btn" onclick="startPipeline()" style="width:100%">开始分析</button>
+      <div class="pipeline-area" id="pipeline-area">
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
+        <div class="stepper" id="stepper"></div>
+        <div class="status-msg" id="status-msg"></div>
+      </div>
+      <div id="pipeline-done" style="margin-top:18px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ Modal: Detail ═══════════════════════ -->
+<div class="modal-backdrop" id="detail-backdrop">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h3>视频详情</h3>
+      <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+    </div>
+    <div class="video-stage" id="detail-stage">
+      <video id="detail-video" controls autoplay playsinline></video>
+    </div>
+    <div class="detail-meta">
+      <h2 id="detail-title"></h2>
+      <div class="detail-meta-tags" id="detail-tag-row"></div>
+    </div>
+    <div class="detail-workflow" id="detail-workflow"></div>
+    <div class="detail-actions" id="detail-actions"></div>
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="switchDetailTab('transcript',this)">转写文本</button>
+      <button class="detail-tab" onclick="switchDetailTab('metrics',this)">脚本指标</button>
+      <button class="detail-tab" onclick="switchDetailTab('analysis',this)">AI 分析报告</button>
+    </div>
+    <div class="detail-panel" id="detail-panel"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ Modal: Error Alert ═══════════════════════ -->
+<div class="modal-backdrop" id="error-backdrop">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head">
+      <h3 style="color:var(--color-danger)">处理失败</h3>
+      <button class="modal-close" onclick="closeErrorModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="error-step-list" style="margin-bottom:16px"></div>
+      <div id="error-detail" style="padding:14px;background:var(--color-surface);border-radius:var(--radius-md);border:1px solid var(--color-border);font-size:.84rem;color:var(--color-text-muted);line-height:1.6;max-height:200px;overflow-y:auto;display:none"></div>
+      <button class="btn btn-primary btn-sm" onclick="closeErrorModal()" style="margin-top:14px;width:100%">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ Modal: Confirm Delete ═══════════════════════ -->
+<div class="modal-backdrop" id="confirm-backdrop">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <h3>确认删除</h3>
+      <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-msg" style="font-size:.88rem;color:var(--color-text-muted);margin-bottom:18px;line-height:1.6"></p>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="closeConfirmModal()" style="flex:1">取消</button>
+        <button class="btn btn-danger btn-sm" id="confirm-ok-btn" style="flex:1">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ Modal: Tag Manager ═══════════════════════ -->
+<div class="modal-backdrop" id="tag-backdrop">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <h3>标签管理</h3>
+      <button class="modal-close" onclick="closeTagModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="tag-list-content" style="max-height:400px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
