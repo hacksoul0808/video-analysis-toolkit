@@ -21,8 +21,7 @@
 <header class="app-bar">
   <div class="app-bar-brand"><span>&#9670;</span> 文案分析平台</div>
   <nav class="app-bar-nav">
-    <button class="active" onclick="switchView('ranking')">排行榜</button>
-    <button onclick="switchView('library')">视频库</button>
+    <button class="active" onclick="switchView('library')">视频库</button>
     <button onclick="switchView('methodology')">方法论</button>
     <button onclick="switchView('stats')">统计</button>
   </nav>
@@ -31,55 +30,8 @@
 <!-- ═══════════════════════ Main Page ═══════════════════════ -->
 <main class="page">
 
-  <!-- ── VIEW: Ranking ── -->
-  <section id="view-ranking">
-    <div class="page-header">
-      <h1 class="display">排行榜</h1>
-    </div>
-    <div id="ranking-stale-hint" class="ranking-stale-hint" style="display:none">数据可能不是最新，点击 <a href="javascript:refreshRanking()">刷新排行</a></div>
-    <!-- 平台子 Tab -->
-    <div class="platform-tabs" id="ranking-platform-tabs"></div>
-    <!-- 2列布局 -->
-    <div class="ranking-layout">
-      <div class="ranking-left">
-        <div class="ranking-toolbar">
-          <label class="rk-select-all"><input type="checkbox" onchange="toggleRankingSelectAll()"> <span>全选</span></label>
-          <span id="ranking-select-count" class="rk-sel-count">已选 0 个</span>
-          <button class="btn btn-ghost btn-sm" onclick="refreshRanking()" id="ranking-refresh-btn">刷新排行</button>
-          <button class="btn btn-primary btn-sm" onclick="batchDownloadRanking()" id="ranking-batch-dl-btn" disabled style="margin-left:auto">批量下载</button>
-        </div>
-        <!-- 排行表格 -->
-        <div class="ranking-table-wrap">
-          <div class="ranking-table-header">
-            <div class="rk-col-check"></div>
-            <div class="rk-col-rank">#</div>
-            <div class="rk-col-cover">封面</div>
-            <div class="rk-col-title">标题</div>
-            <div class="rk-col-dur">时长</div>
-            <div class="rk-col-play">点赞</div>
-          </div>
-          <div class="ranking-table-body" id="ranking-table-body"></div>
-        </div>
-        <!-- 分页 -->
-        <div class="ranking-pagination">
-          <button class="btn btn-ghost btn-sm" onclick="prevRankingPage()">上一页</button>
-          <span id="ranking-page-info">第 0/0 页</span>
-          <button class="btn btn-ghost btn-sm" onclick="nextRankingPage()">下一页</button>
-        </div>
-      </div>
-      <div class="ranking-right">
-        <div class="ranking-detail-panel" id="ranking-detail-panel">
-          <div class="rk-detail-placeholder">
-            <div class="rk-detail-placeholder-icon">&#128269;</div>
-            <div>点击左侧视频查看详情</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- ── VIEW: Library ── -->
-  <section id="view-library" style="display:none">
+  <section id="view-library">
     <div class="page-header">
       <h1 class="display" id="lib-heading">视频库</h1>
       <button class="btn btn-primary" onclick="openAddModal()">+ 添加视频</button>
@@ -240,15 +192,6 @@
     <div class="modal-body">
       <div id="tag-list-content" style="max-height:400px;overflow-y:auto"></div>
     </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════ Batch Download Bar ═══════════════════════ -->
-<div class="batch-dl-bar" id="batch-dl-bar">
-  <div class="batch-dl-bar-inner">
-    <span class="batch-dl-status">准备中...</span>
-    <div class="batch-dl-progress"><div class="batch-dl-fill" style="width:0%"></div></div>
-    <span class="batch-dl-pct">0%</span>
   </div>
 </div>
 

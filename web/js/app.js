@@ -14,10 +14,6 @@ import { TagManager } from './components/tag-manager.js';
 import { LibraryView } from './views/library.js';
 import { MethodologyView } from './views/methodology.js';
 import { StatsView } from './views/stats.js';
-import { RankingView } from './views/ranking.js';
-import { RankingTable } from './components/ranking-table.js';
-import { RankingTabs } from './components/ranking-platform-tabs.js';
-import { BatchDownloadBar } from './components/batch-download-bar.js';
 
 // ═══════════════════════════════════════
 // View Switching
@@ -25,14 +21,11 @@ import { BatchDownloadBar } from './components/batch-download-bar.js';
 function switchView(v) {
   Store.view = v;
   document.querySelectorAll('.app-bar-nav button').forEach((b, i) =>
-    b.classList.toggle('active', ['ranking', 'library', 'methodology', 'stats'].indexOf(v) === i)
+    b.classList.toggle('active', ['library', 'methodology', 'stats'].indexOf(v) === i)
   );
-  document.getElementById('view-ranking').style.display = v === 'ranking' ? 'block' : 'none';
   document.getElementById('view-library').style.display = v === 'library' ? 'block' : 'none';
   document.getElementById('view-methodology').style.display = v === 'methodology' ? 'block' : 'none';
   document.getElementById('view-stats').style.display = v === 'stats' ? 'block' : 'none';
-  if (v === 'ranking') RankingView.init();
-  if (v !== 'ranking') RankingView.cleanup();
   if (v === 'library') LibraryView.loadLibrary();
   if (v === 'methodology') MethodologyView.loadMeta();
   if (v === 'stats') StatsView.loadStats();
@@ -107,20 +100,6 @@ Object.assign(window, {
   clearSelection: LibraryView.clearSelection,
   toggleSelectMode: LibraryView.toggleSelectMode,
 
-  // Ranking View
-  loadRanking: RankingView.loadRanking,
-  retryLoadRanking: RankingView.loadRanking,
-  switchRankingPlatform: p => { RankingView.onSelectDetail = RankingView.onSelectDetail; RankingTabs.switchPlatform(p); },
-  selectRankingDetail: RankingTable.selectDetail,
-  toggleRankingSelect: (id, cb) => RankingTable.toggleSelect(id, cb),
-  toggleRankingSelectAll: RankingTable.toggleSelectAll,
-  prevRankingPage: RankingTable.prevPage,
-  nextRankingPage: RankingTable.nextPage,
-  batchDownloadRanking: RankingView.batchDownload,
-  downloadRankingVideo: (vid, plat) => RankingView.downloadSingle(vid, plat),
-  refreshRanking: RankingView.refreshRanking,
-  hideBatchDownloadBar: BatchDownloadBar.hide,
-
   // Methodology
   loadMeta: MethodologyView.loadMeta,
 
@@ -169,8 +148,7 @@ document.addEventListener('click', function (e) {
 // ═══════════════════════════════════════
 function init() {
   LibraryView.initSelectMode();
-  // 排行榜为默认首页视图
-  switchView('ranking');
+  switchView('library');
 }
 
 // Run on DOM ready

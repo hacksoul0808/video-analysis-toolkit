@@ -20,7 +20,7 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
 
 from server.config import PORT, WEB_DIR
-from server.handlers import library, pipeline, analyze, tags, import_video, files, ranking
+from server.handlers import library, pipeline, analyze, tags, import_video, files
 from server.handlers.files import handle_static
 
 
@@ -50,10 +50,6 @@ class APIHandler(SimpleHTTPRequestHandler):
                 files.handle_video_file(self)
             elif path.startswith("/api/video/"):
                 files.handle_video_resource(self)
-            elif path == "/api/ranking/batch-progress":
-                ranking.handle_batch_progress(self)
-            elif path.startswith("/api/ranking/"):
-                ranking.handle_get_ranking(self)
             elif path.startswith("/sounds/"):
                 files.handle_sound(self)
             elif path.startswith("/css/") or path.startswith("/js/") or path.startswith("/assets/"):
@@ -89,10 +85,6 @@ class APIHandler(SimpleHTTPRequestHandler):
                 tags.handle_post(self, body)
             elif path == "/api/import":
                 import_video.handle_import(self, body)
-            elif path == "/api/ranking/batch-download":
-                ranking.handle_batch_download(self, body)
-            elif path.endswith("/refresh") and "/api/ranking/" in path:
-                ranking.handle_refresh_ranking(self)
             else:
                 self.send_error(404, "Not found")
         except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
