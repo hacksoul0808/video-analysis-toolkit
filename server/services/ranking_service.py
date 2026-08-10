@@ -283,20 +283,24 @@ def get_ranking(platform: str, page: int = 1, page_size: int = 50) -> dict:
 
     # 缓存有效，直接返回
     if cache_age is not None and cache_age < RANKING_CACHE_TTL_SECONDS:
-        videos = cache.get(platform, {}).get("videos", [])
+        plat_cache = cache.get(platform, {})
+        videos = plat_cache.get("videos", [])
         return _paginate(platform, videos, page, page_size,
-                         cached_at=cache[platform]["updated_at"], is_stale=False)
+                         cached_at=plat_cache.get("updated_at", ""), is_stale=False,
+                         error=plat_cache.get("error") if not videos else None)
 
     # 缓存过期但不至于太老：返回旧数据 + 后台异步刷新
     if cache_age is not None and cache_age < RANKING_CACHE_MAX_AGE_SECONDS:
-        videos = cache.get(platform, {}).get("videos", [])
+        plat_cache = cache.get(platform, {})
+        videos = plat_cache.get("videos", [])
         # 异步刷新
         lock = _get_platform_lock(platform)
         if lock.acquire(blocking=False):
             t = threading.Thread(target=_refresh_cache, args=(platform,), daemon=True)
             t.start()
         return _paginate(platform, videos, page, page_size,
-                         cached_at=cache[platform]["updated_at"], is_stale=True)
+                         cached_at=plat_cache.get("updated_at", ""), is_stale=True,
+                         error=plat_cache.get("error") if not videos else None)
 
     # 无缓存或缓存太老：同步刷新
     result = _refresh_cache(platform)

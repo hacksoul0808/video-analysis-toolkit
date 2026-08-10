@@ -1,12 +1,7 @@
 {
   "douyin": {
-    "updated_at": "2026-08-10T03:52:12.787036+00:00",
+    "updated_at": "2026-08-10T03:56:03.796568+00:00",
     "videos": [],
     "error": "需要配置抖音 Cookie 才能获取爆款视频。请在 .env 中设置 DOUYIN_COOKIE=你的Cookie值，然后重启服务。\n\n获取方式：浏览器登录 douyin.com → F12 → Application → Cookies → 复制所有 cookie 值。"
-  },
-  "tiktok": {
-    "updated_at": "2026-08-10T03:53:48.267926+00:00",
-    "videos": [],
-    "error": "TikTok 排行需要配置 Cookie 认证，请参考文档设置"
   }
 }
