@@ -195,7 +195,7 @@ def handle_process(handler, body: dict):
         progress_store[video_id] = {"percent": 50, "status": "analyzing", "step": "analyze"}
         if old_vid:
             progress_store[old_vid] = {"percent": 50, "status": "analyzing", "step": "analyze"}
-        ds_result = call_deepseek(video_info_dict, transcript, script_stats)
+        ds_result = call_deepseek(video_info_dict, transcript, script_stats, info.get("metrics"))
         if ds_result.get("error"):
             progress_store[video_id] = {"percent": 100, "status": "error", "step": "analyze"}
             steps.append({"step": "ai_analysis", "status": "error", "error": ds_result["error"]})
@@ -271,7 +271,7 @@ def _save_to_library(video_id, info, steps, transcript=None, script_stats=None, 
             "deepseek_status": "pending",
             "tags": [],
             "viral_score": 0,
-            "metrics": {},
+            "metrics": info.get("metrics", {"likes": 0, "comments": 0, "shares": 0, "plays": 0, "collects": 0}),
             "script_stats": {},
             "created_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
         }

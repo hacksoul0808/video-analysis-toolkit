@@ -79,7 +79,7 @@ def handle_import(handler, body: dict):
         "analysis_status": "pending",
         "deepseek_status": "pending",
         "tags": [],
-        "metrics": {"likes": 0, "comments": 0, "shares": 0, "collects": 0},
+        "metrics": {"likes": 0, "comments": 0, "shares": 0, "plays": 0, "collects": 0},
         "created_at": datetime.utcnow().isoformat() + "Z",
     })
     save_library(lib)

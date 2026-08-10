@@ -20,7 +20,7 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from socketserver import ThreadingMixIn
 
 from server.config import PORT, WEB_DIR
-from server.handlers import library, pipeline, analyze, tags, import_video, files
+from server.handlers import library, pipeline, analyze, tags, import_video, refresh_metrics, files
 from server.handlers.files import handle_static
 
 
@@ -54,6 +54,9 @@ class APIHandler(SimpleHTTPRequestHandler):
                 files.handle_sound(self)
             elif path.startswith("/css/") or path.startswith("/js/") or path.startswith("/assets/"):
                 handle_static(self)
+            elif path == "/favicon.ico":
+                self.send_response(204)
+                self.end_headers()
             else:
                 self.send_error(404, "Not found")
         except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
@@ -85,6 +88,8 @@ class APIHandler(SimpleHTTPRequestHandler):
                 tags.handle_post(self, body)
             elif path == "/api/import":
                 import_video.handle_import(self, body)
+            elif path == "/api/refresh-metrics":
+                refresh_metrics.handle_refresh_metrics(self, body)
             else:
                 self.send_error(404, "Not found")
         except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):

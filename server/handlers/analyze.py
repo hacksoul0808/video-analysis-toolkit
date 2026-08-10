@@ -43,7 +43,7 @@ def handle_analyze(handler, body: dict):
         }
 
     # 调用 DeepSeek
-    result = call_deepseek(video_info, transcript, script_stats)
+    result = call_deepseek(video_info, transcript, script_stats, video_info.get("metrics"))
 
     if result["error"]:
         return _send_json(handler, result, 200)

@@ -132,13 +132,40 @@ async function batchAnalyze() {
   if (window.toast) window.toast('批量分析完成: ' + done + ' 成功' + (err ? ', ' + err + ' 失败' : ''));
 }
 
+// ── Refresh Metrics ───────────────────────────
+async function refreshMetrics() {
+  const btn = document.getElementById('btn-refresh-metrics');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = '刷新中...';
+  try {
+    const result = await API.refreshMetrics();
+    if (window.toast) window.toast('互动数据刷新完成: ' + result.updated + ' 成功' + (result.failed ? ', ' + result.failed + ' 失败' : ''));
+    loadLibrary();
+  } catch (e) {
+    if (window.toast) window.toast('刷新失败: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '刷新互动数据';
+  }
+}
+
 // ── Init: add multi-select toggle button ──────
 function initSelectMode() {
   const sortRow = document.getElementById('sort-row');
   if (!sortRow) return;
+  // 刷新互动数据按钮
+  const refreshBtn = document.createElement('button');
+  refreshBtn.id = 'btn-refresh-metrics';
+  refreshBtn.className = 'btn btn-ghost btn-sm';
+  refreshBtn.style.marginLeft = 'auto';
+  refreshBtn.style.marginRight = '8px';
+  refreshBtn.textContent = '刷新互动数据';
+  refreshBtn.onclick = refreshMetrics;
+  sortRow.appendChild(refreshBtn);
+  // 多选模式按钮
   const btn = document.createElement('button');
   btn.className = 'btn btn-ghost btn-sm';
-  btn.style.marginLeft = 'auto';
   btn.textContent = '多选模式';
   btn.onclick = toggleSelectMode;
   sortRow.appendChild(btn);

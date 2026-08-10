@@ -127,26 +127,33 @@
 
 <!-- ═══════════════════════ Modal: Detail ═══════════════════════ -->
 <div class="modal-backdrop" id="detail-backdrop">
-  <div class="modal wide">
+  <div class="modal wide detail-modal">
     <div class="modal-head">
       <h3>视频详情</h3>
       <button class="modal-close" onclick="closeDetailModal()">&times;</button>
     </div>
-    <div class="video-stage" id="detail-stage">
-      <video id="detail-video" controls autoplay playsinline></video>
+    <div class="detail-body">
+      <div class="detail-left">
+        <div class="video-stage" id="detail-stage">
+          <video id="detail-video" controls autoplay playsinline></video>
+        </div>
+        <div class="detail-meta">
+          <h2 id="detail-title"></h2>
+          <div class="detail-eng-metrics" id="detail-eng-metrics"></div>
+          <div class="detail-meta-tags" id="detail-tag-row"></div>
+        </div>
+        <div class="detail-workflow" id="detail-workflow"></div>
+        <div class="detail-actions" id="detail-actions"></div>
+      </div>
+      <div class="detail-right">
+        <div class="detail-tabs">
+          <button class="detail-tab active" onclick="switchDetailTab('transcript',this)">转写文本</button>
+          <button class="detail-tab" onclick="switchDetailTab('metrics',this)">脚本指标</button>
+          <button class="detail-tab" onclick="switchDetailTab('analysis',this)">AI 分析报告</button>
+        </div>
+        <div class="detail-panel" id="detail-panel"></div>
+      </div>
     </div>
-    <div class="detail-meta">
-      <h2 id="detail-title"></h2>
-      <div class="detail-meta-tags" id="detail-tag-row"></div>
-    </div>
-    <div class="detail-workflow" id="detail-workflow"></div>
-    <div class="detail-actions" id="detail-actions"></div>
-    <div class="detail-tabs">
-      <button class="detail-tab active" onclick="switchDetailTab('transcript',this)">转写文本</button>
-      <button class="detail-tab" onclick="switchDetailTab('metrics',this)">脚本指标</button>
-      <button class="detail-tab" onclick="switchDetailTab('analysis',this)">AI 分析报告</button>
-    </div>
-    <div class="detail-panel" id="detail-panel"></div>
   </div>
 </div>
 

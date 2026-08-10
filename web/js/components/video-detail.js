@@ -13,8 +13,62 @@ function renderDetailTags(v) {
   const tags = v.tags || [];
   let h = tags.map(t => '<span class="tag-edit-chip">' + esc(t) + '<span class="tag-x" onclick="event.stopPropagation();removeTagFromVideo(\'' + esc(t) + '\')">&times;</span></span>').join('');
   h += '<input class="tag-add-input" id="detail-tag-input" placeholder="+ 添加标签" onchange="addTagToVideo()" onkeydown="if(event.key===\'Enter\'){addTagToVideo();event.preventDefault()}">';
-  h += ' <span style="font-family:var(--font-display);font-size:.75rem;color:var(--color-accent);margin-left:4px">' + (v.viral_score || '--') + '</span>';
   row.innerHTML = h;
+}
+
+// ── Engagement Metrics ────────────────────────
+function formatNum(n) {
+  if (n >= 10000) return (n / 10000).toFixed(1) + '万';
+  return n.toLocaleString();
+}
+
+function calcEngagementScore(metrics) {
+  const m = metrics || {};
+  const likes = m.likes || 0;
+  if (likes <= 0) return 0;
+  const comments = m.comments || 0;
+  const shares = m.shares || 0;
+  const collects = m.collects || 0;
+
+  // 1. 点赞量级分 (0-30): log10 scale
+  const likePower = Math.min(Math.log10(likes) * 6, 30);
+
+  // 2. 评论互动率 (0-20): rate = comments/likes
+  const commentScore = Math.min((comments / likes) * 500, 20);
+
+  // 3. 分享传播率 (0-25): rate = shares/likes
+  const shareScore = Math.min((shares / likes) * 100, 25);
+
+  // 4. 收藏价值率 (0-25): rate = collects/likes
+  const collectScore = Math.min((collects / likes) * 50, 25);
+
+  return Math.round(Math.min(likePower + commentScore + shareScore + collectScore, 100));
+}
+
+function renderEngagementMetrics(v) {
+  const el = document.getElementById('detail-eng-metrics');
+  if (!el) return;
+  const m = v.metrics || {};
+  const likes = m.likes || 0;
+  if (!likes && !m.comments && !m.shares && !m.collects) {
+    el.innerHTML = '<span style="font-size:.72rem;color:var(--color-text-dim)">暂无互动数据</span>';
+    return;
+  }
+  const engScore = calcEngagementScore(m);
+  const items = [
+    { label: '点赞', val: likes },
+    { label: '评论', val: m.comments || 0 },
+    { label: '分享', val: m.shares || 0 },
+    { label: '收藏', val: m.collects || 0 },
+  ];
+  let h = '';
+  for (const item of items) {
+    h += '<div class="eng-item"><span class="eng-val">' + formatNum(item.val) + '</span><span class="eng-label">' + item.label + '</span></div>';
+  }
+  if (engScore > 0) {
+    h += '<div class="eng-item score"><span class="eng-val">' + engScore + '</span><span class="eng-label">互动分</span></div>';
+  }
+  el.innerHTML = h;
 }
 
 function addTagToVideo() {
@@ -237,6 +291,9 @@ async function openDetail(id) {
   document.getElementById('detail-title').innerHTML =
     '<input class="inline-edit" id="detail-title-input" value="' + esc(v.title || v.id || '') + '" onblur="saveTitle()" onkeydown="if(event.key===\'Enter\')this.blur()">';
 
+  // Engagement metrics
+  renderEngagementMetrics(v);
+
   const video = document.getElementById('detail-video');
   video.src = '/api/video-file/' + id;
   document.getElementById('detail-stage').style.display = 'block';
@@ -324,6 +381,7 @@ function renderTranscript(t) {
   document.getElementById('detail-video').ontimeupdate = function () {
     const ct = this.currentTime;
     const segs = document.querySelectorAll('.transcript-seg');
+    const panel = document.getElementById('detail-panel');
     segs.forEach((s, i) => {
       const t = parseFloat(s.dataset.t);
       const n = segs[i + 1] ? parseFloat(segs[i + 1].dataset.t) : Infinity;
@@ -331,7 +389,7 @@ function renderTranscript(t) {
         if (!s.classList.contains('active')) {
           segs.forEach(x => x.classList.remove('active'));
           s.classList.add('active');
-          s.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          panel.scrollTo({ top: s.offsetTop - panel.clientHeight / 3, behavior: 'smooth' });
         }
       }
     });
@@ -392,4 +450,5 @@ export const VideoDetail = {
   addTagToVideo,
   removeTagFromVideo,
   confirmDeleteVideo,
+  calcEngagementScore,
 };

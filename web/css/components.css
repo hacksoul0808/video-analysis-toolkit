@@ -159,6 +159,7 @@
   overflow:hidden;
 }
 .modal.wide { max-width:960px; }
+.modal.detail-modal { max-width:1300px; max-height:92vh; display:flex; flex-direction:column; }
 
 .modal-head {
   display:flex; align-items:center; justify-content:space-between;
@@ -295,9 +296,21 @@
 .err-step .step-tag { font-size:.68rem; color:var(--color-text-dim); }
 
 /* ── Detail Modal ── */
-.video-stage { background:#000; aspect-ratio:16/9; }
+.detail-body {
+  display:flex; flex:1; min-height:0; overflow:hidden;
+}
+.detail-left {
+  flex:0 0 50%; display:flex; flex-direction:column;
+  overflow:hidden;
+  border-right:1px solid var(--color-border);
+}
+.detail-right {
+  flex:1; display:flex; flex-direction:column;
+  min-height:0; overflow:hidden;
+}
+.video-stage { background:#000; aspect-ratio:16/9; max-height:320px; flex-shrink:0; }
 .video-stage video { width:100%; height:100%; object-fit:contain; }
-.detail-meta { padding:18px 24px; border-bottom:1px solid var(--color-border); }
+.detail-meta { padding:18px 24px; border-bottom:1px solid var(--color-border); flex-shrink:0; }
 .detail-meta h2 { font-size:1.1rem; font-weight:600; line-height:1.35; margin-bottom:10px; text-wrap:balance; }
 .detail-meta-tags { display:flex; gap:6px; flex-wrap:wrap; }
 .detail-tab {
@@ -307,7 +320,11 @@
 }
 .detail-tab:hover { color:var(--color-text); background:var(--color-surface); }
 .detail-tab.active { background:var(--color-accent-dim); color:var(--color-accent); }
-.detail-panel { padding:24px; max-height:480px; overflow-y:auto; }
+.detail-tabs { display:flex; gap:6px; padding:12px 24px; border-bottom:1px solid var(--color-border); flex-shrink:0; }
+.detail-workflow { display:flex; gap:8px; padding:0 24px 14px; flex-wrap:wrap; flex-shrink:0; }
+.detail-actions { display:flex; gap:8px; padding:0 24px 14px; flex-wrap:wrap; flex-shrink:0; }
+.detail-actions .btn:disabled { opacity:.35; cursor:not-allowed; pointer-events:none; }
+.detail-panel { padding:24px; overflow-y:auto; flex:1; min-height:0; }
 
 /* ── Workflow Step Badge ── */
 .wf-step {
@@ -344,6 +361,18 @@
 .inline-edit:focus { border-bottom-color:var(--color-accent); }
 
 .tag-row-editable { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+
+/* ── Engagement Metrics Row ── */
+.detail-eng-metrics {
+  display:flex; gap:16px; flex-wrap:wrap; margin:10px 0 4px;
+  padding:10px 14px; background:var(--color-surface);
+  border-radius:var(--radius-sm); border:1px solid var(--color-border);
+}
+.eng-item { display:flex; flex-direction:column; align-items:center; min-width:60px; }
+.eng-val { font-family:var(--font-display); font-size:.95rem; font-weight:700; color:var(--color-text); font-variant-numeric:tabular-nums; }
+.eng-label { font-size:.68rem; color:var(--color-text-dim); margin-top:2px; }
+.eng-item.score .eng-val { color:var(--color-accent); }
+.eng-item .eng-sep { color:var(--color-border); font-size:.85rem; }
 .tag-edit-chip {
   display:inline-flex; align-items:center; gap:4px;
   padding:4px 10px; border-radius:4px; font-size:.75rem; font-weight:500;

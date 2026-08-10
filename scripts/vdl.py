@@ -151,6 +151,20 @@ def download_douyin_builtin(url, output_dir):
         title = t.encode().decode('unicode_escape') if '\\u' in t else t
         _log(f"标题: {title[:60]}")
 
+    # 提取互动数据（点赞/评论/分享/播放/收藏）
+    try:
+        # 方案1: 匹配 "statistics":{...} 块
+        m = re.search(r'"statistics"\s*:\s*\{[^}]+\}', resp.text)
+        if m:
+            stats_block = '{' + m.group(0) + '}'
+            stats_obj = json.loads(stats_block)
+            stats = stats_obj.get("statistics", {})
+            if stats:
+                print(f"METRICS:{json.dumps(stats, ensure_ascii=False)}")
+                _log(f"互动数据: 赞={stats.get('digg_count',0)} 评={stats.get('comment_count',0)} 播={stats.get('play_count',0)}")
+    except (json.JSONDecodeError, AttributeError):
+        pass  # 静默失败，不影响下载
+
     # 下载无水印视频
     play_url = f"https://aweme.snssdk.com/aweme/v1/play/?video_id={internal_id}&ratio=720p&line=0"
     print(f"标题: {title[:60]}")

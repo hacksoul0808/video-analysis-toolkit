@@ -32,4 +32,6 @@ export const API = {
   transcript(id) { return API.get('/api/video/transcript/' + id); },
 
   analysis(id) { return API.get('/api/video/analysis/' + id); },
+
+  refreshMetrics(ids) { return API.post('/api/refresh-metrics', ids ? { video_ids: ids } : {}); },
 };

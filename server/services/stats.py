@@ -25,17 +25,17 @@ def compute_stats(videos: list[dict]) -> dict:
         by_tag[t]["avg_likes"] = round(by_tag[t]["total_likes"] / c, 1) if c else 0
 
     # 分数分布
-    score_dist = {"爆款(80+)": 0, "优质(60-79)": 0, "普通(40-59)": 0, "低迷(<40)": 0}
+    score_dist = {"爆款(60+)": 0, "优质(40-59)": 0, "普通(20-39)": 0, "低迷(<20)": 0}
     for v in videos:
         s = v.get("viral_score", 0)
-        if s >= 80:
-            score_dist["爆款(80+)"] += 1
-        elif s >= 60:
-            score_dist["优质(60-79)"] += 1
+        if s >= 60:
+            score_dist["爆款(60+)"] += 1
         elif s >= 40:
-            score_dist["普通(40-59)"] += 1
+            score_dist["优质(40-59)"] += 1
+        elif s >= 20:
+            score_dist["普通(20-39)"] += 1
         else:
-            score_dist["低迷(<40)"] += 1
+            score_dist["低迷(<20)"] += 1
 
     return {
         "total_videos": total,

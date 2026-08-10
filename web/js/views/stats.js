@@ -16,8 +16,8 @@ async function loadStats() {
     document.getElementById('kpi-strip').innerHTML =
       '<div class="kpi-tile"><div class="num accent">' + (d.total_videos || 0) + '</div><div class="lbl">视频总数</div></div>' +
       '<div class="kpi-tile"><div class="num">' + (d.avg_viral_score || 0) + '</div><div class="lbl">平均爆款分</div></div>' +
-      '<div class="kpi-tile"><div class="num warn">' + (d.score_distribution ? d.score_distribution['爆款(80+)'] || 0 : 0) + '</div><div class="lbl">爆款 (80+)</div></div>' +
-      '<div class="kpi-tile"><div class="num">' + (d.score_distribution ? d.score_distribution['优质(60-79)'] || 0 : 0) + '</div><div class="lbl">优质 (60-79)</div></div>';
+      '<div class="kpi-tile"><div class="num warn">' + (d.score_distribution ? d.score_distribution['爆款(60+)'] || 0 : 0) + '</div><div class="lbl">爆款 (60+)</div></div>' +
+      '<div class="kpi-tile"><div class="num">' + (d.score_distribution ? d.score_distribution['优质(40-59)'] || 0 : 0) + '</div><div class="lbl">优质 (40-59)</div></div>';
     renderCharts(d);
   } catch (e) {
     document.getElementById('kpi-strip').innerHTML = '';

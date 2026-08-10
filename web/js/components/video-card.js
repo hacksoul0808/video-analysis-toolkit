@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════
 
 import { esc, formatTime } from '../utils.js';
+import { VideoDetail } from './video-detail.js';
 
 // ── Card Video Preview ────────────────────────
 export function previewPlay(video) {
@@ -69,12 +70,12 @@ export function renderGrid(videos, selectMode, selected) {
       h += '</div></div>';
       continue;
     }
-    const sc = v.viral_score || 0;
+    const sc = VideoDetail.calcEngagementScore(v.metrics);
     const st = v.transcript_status === 'done';
     const ai = v.deepseek_status === 'done';
     const dur = v.duration_sec ? formatTime(v.duration_sec) : '--';
     const dt = (v.created_at || '').slice(0, 10);
-    const tier = sc >= 80 ? 'hot' : sc >= 60 ? 'good' : 'ok';
+    const tier = sc >= 60 ? 'hot' : sc >= 40 ? 'good' : 'ok';
     h += '<div class="video-card" data-tier="' + tier + '" onclick="openDetail(\'' + v.id + '\')">';
     h += '<button class="card-del" onclick="event.stopPropagation();confirmDeleteVideo(\'' + v.id + '\',\'' + esc((v.title || v.id).substring(0, 40)) + '\')" title="删除">\u00D7</button>';
     h += '<div class="card-media">';

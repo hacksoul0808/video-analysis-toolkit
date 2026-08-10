@@ -106,7 +106,7 @@ def analyze_transcript(transcript_data: dict) -> dict | None:
 
 # ── DeepSeek API 调用 ──────────────────────────────
 
-def call_deepseek(video_info: dict, transcript_data: dict, script_stats: dict | None) -> dict:
+def call_deepseek(video_info: dict, transcript_data: dict, script_stats: dict | None, metrics: dict | None = None) -> dict:
     """调用 DeepSeek API 进行文案分析，返回 report + tags + viral_score。"""
     api_key = os.environ.get("DEEPSEEK_API_KEY", "")
     base_url = os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
@@ -167,22 +167,51 @@ def call_deepseek(video_info: dict, transcript_data: dict, script_stats: dict | 
         if m:
             tags = _clean_tags(re.findall(r'#(\S+)', m.group(1)))
 
-    viral_score = _calculate_viral_score(report, script_stats)
+    viral_score = _calculate_viral_score(report, script_stats, metrics)
 
     return {"error": None, "report": report, "tags": tags, "viral_score": viral_score}
 
 
 # ── 爆款评分 ───────────────────────────────────────
 
-def _calculate_viral_score(report: str, script_stats: dict | None) -> int:
+def _calculate_engagement_score(metrics: dict | None) -> int:
+    """基于互动数据计算 0-100 互动分。
+    
+    公式（likes > 0 时生效）：
+    1. 点赞量级分 (0-30): log10(likes) * 6，上限 30
+       e.g. 100赞=12, 1000=18, 1万=24, 10万=30
+    2. 评论互动率 (0-20): comments/likes * 500，上限 20
+       e.g. 2%=10, 4%=20
+    3. 分享传播率 (0-25): shares/likes * 100，上限 25
+       e.g. 10%=10, 25%=25
+    4. 收藏价值率 (0-25): collects/likes * 50，上限 25
+       e.g. 20%=10, 50%=25
+    plays=0 说明数据不可用，不参与计算。
+    """
+    if not metrics:
+        return 0
+    likes = metrics.get("likes", 0) or 0
+    if likes <= 0:
+        return 0
+
+    import math
+    comments = metrics.get("comments", 0) or 0
+    shares = metrics.get("shares", 0) or 0
+    collects = metrics.get("collects", 0) or 0
+
+    like_power = min(math.log10(likes) * 6, 30)
+    comment_score = min((comments / likes) * 500, 20)
+    share_score = min((shares / likes) * 100, 25)
+    collect_score = min((collects / likes) * 50, 25)
+
+    return round(min(like_power + comment_score + share_score + collect_score, 100))
+
+
+def _calculate_viral_score(report: str, script_stats: dict | None, metrics: dict | None = None) -> int:
     """从报告内容和统计数据中计算 0-100 爆款评分。
     
-    评分维度：
-    - 钩子类型 (0-20): 认知颠覆/反直觉 > 数据冲击 > 恐惧，无钩子=0
-    - 结构完整度 (0-20): Hook + Why + CTA + 模板，每缺一项扣分
-    - 情绪词密度 (0-15): 按情绪词数量阶梯评分，0 词 = 0 分
-    - 内容数据 (0-25): 基于 script_stats 的语速、AI关键词密度
-    - 模板可复用度 (0-20): 报告是否包含可直接使用的模板
+    若 metrics 可用（likes > 0）：混合 content_score * 0.4 + engagement_score * 0.6
+    若 metrics 不可用：仅使用 content_score
     """
     score = 0
 
@@ -277,4 +306,10 @@ def _calculate_viral_score(report: str, script_stats: dict | None) -> int:
         template_score = 3
     score += template_score
 
-    return min(score, 100)
+    content_score = min(score, 100)
+
+    # 混合互动分
+    eng_score = _calculate_engagement_score(metrics)
+    if eng_score > 0:
+        return round(content_score * 0.4 + eng_score * 0.6)
+    return content_score

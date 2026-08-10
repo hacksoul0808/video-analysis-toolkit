@@ -1,6 +1,7 @@
 """
 视频下载服务：调用 scripts/vdl.py 子进程下载视频。
 """
+import json
 import os
 import re
 import sys
@@ -110,6 +111,22 @@ def download_video(url: str, output_dir: Path, video_id: str) -> dict:
             platform = plat
             break
 
+    # 提取互动数据（来自 vdl.py 的 METRICS 输出行）
+    metrics = {"likes": 0, "comments": 0, "shares": 0, "plays": 0, "collects": 0}
+    m = re.search(r'METRICS:(\{.+\})', stdout_full)
+    if m:
+        try:
+            raw = json.loads(m.group(1))
+            metrics = {
+                "likes": raw.get("digg_count", 0),
+                "comments": raw.get("comment_count", 0),
+                "shares": raw.get("share_count", 0),
+                "plays": raw.get("play_count", 0),
+                "collects": raw.get("collect_count", 0),
+            }
+        except (json.JSONDecodeError, KeyError):
+            pass
+
     return {
         "video_id": actual_video_id,
         "title": title,
@@ -117,4 +134,5 @@ def download_video(url: str, output_dir: Path, video_id: str) -> dict:
         "url": url,
         "filename": filename,
         "file_size_mb": size_mb,
+        "metrics": metrics,
     }

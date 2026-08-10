@@ -19,7 +19,13 @@
         "认知升级"
       ],
       "viral_score": 56,
-      "metrics": {},
+      "metrics": {
+        "likes": 8609,
+        "comments": 286,
+        "shares": 2649,
+        "plays": 0,
+        "collects": 8175
+      },
       "script_stats": {
         "char_count": 1401,
         "duration": 246.8,
@@ -63,7 +69,13 @@
         "幽默"
       ],
       "viral_score": 50,
-      "metrics": {},
+      "metrics": {
+        "likes": 7156,
+        "comments": 45,
+        "shares": 1439,
+        "plays": 0,
+        "collects": 2413
+      },
       "script_stats": {
         "char_count": 125,
         "duration": 27.7,
@@ -105,7 +117,13 @@
         "爆款"
       ],
       "viral_score": 71,
-      "metrics": {},
+      "metrics": {
+        "likes": 523,
+        "comments": 78,
+        "shares": 78,
+        "plays": 0,
+        "collects": 254
+      },
       "script_stats": {
         "char_count": 1262,
         "duration": 181.7,
@@ -150,7 +168,13 @@
         "3分钟以内"
       ],
       "viral_score": 62,
-      "metrics": {},
+      "metrics": {
+        "likes": 48427,
+        "comments": 4338,
+        "shares": 15870,
+        "plays": 0,
+        "collects": 41274
+      },
       "script_stats": {
         "char_count": 638,
         "duration": 115.8,
@@ -193,7 +217,13 @@
         "AI"
       ],
       "viral_score": 53,
-      "metrics": {},
+      "metrics": {
+        "likes": 337239,
+        "comments": 7806,
+        "shares": 240779,
+        "plays": 0,
+        "collects": 20630
+      },
       "script_stats": {
         "char_count": 411,
         "duration": 324.0,
@@ -215,7 +245,104 @@
       "compression_ratio": 0.678,
       "has_cover": true,
       "cover_file": "cover.jpg"
+    },
+    {
+      "id": "7649670771777883433",
+      "url": "https://www.douyin.com/video/7649670771777883433",
+      "title": "全校粉笔大作战！当画出的任意物品都能变成现实... 灵感来源于粉笔战争SoKrispy的短片 #未来导演扶持计划  #自",
+      "platform": "douyin",
+      "file_size_mb": 65.3,
+      "download_time": "2026-08-10T18:16:58",
+      "transcript_status": "done",
+      "analysis_status": "done",
+      "deepseek_status": "done",
+      "tags": [
+        "未来导演扶持计划",
+        "行业热点",
+        "科普教程",
+        "教程向",
+        "爆款",
+        "幽默",
+        "5-8分钟"
+      ],
+      "viral_score": 53,
+      "metrics": {
+        "likes": 1879197,
+        "comments": 39655,
+        "shares": 1109937,
+        "plays": 0,
+        "collects": 221286
+      },
+      "script_stats": {
+        "char_count": 466,
+        "duration": 325.6,
+        "chars_per_min": 86,
+        "segment_count": 70,
+        "avg_seg_chars": 7,
+        "ai_keywords": 0,
+        "emotion_keywords": 1,
+        "tech_keywords": 0,
+        "keyword_density": 0.21,
+        "hook_text": "欢迎来到雷霆高校首届粉笔战争 一千名学生对抗一百名老师 每人拥有一根魔法粉笔 可以将画出的任何东西变为现实 这不公平 学生人数十倍碾压我们啊 那咋啦 老师每人看 我去 真画出来了 怎么感觉这光剑是斗板的",
+        "close_text": ""
+      },
+      "created_at": "2026-08-10T18:16:58",
+      "duration_sec": 325.6,
+      "compressed": true,
+      "original_size_mb": 65.3,
+      "compressed_size_mb": 21.3,
+      "compression_ratio": 0.674,
+      "has_cover": true,
+      "cover_file": "cover.jpg"
+    },
+    {
+      "id": "7654410171170458918",
+      "url": "https://v.douyin.com/tNPi_UY1xRo/",
+      "title": "「VibeCoding大赏」10分钟弄懂VibeCoding #VibeCoding #vibecoding大赏  #a",
+      "platform": "douyin",
+      "file_size_mb": 19.2,
+      "download_time": "2026-08-10T23:21:17",
+      "transcript_status": "done",
+      "analysis_status": "done",
+      "deepseek_status": "done",
+      "tags": [
+        "科普教程",
+        "AI",
+        "认知升级",
+        "教程向",
+        "实用技巧",
+        "5-8分钟"
+      ],
+      "viral_score": 69,
+      "metrics": {
+        "likes": 19461,
+        "comments": 226,
+        "shares": 2496,
+        "plays": 0,
+        "collects": 12362
+      },
+      "script_stats": {
+        "char_count": 3833,
+        "duration": 746.1,
+        "chars_per_min": 308,
+        "segment_count": 288,
+        "avg_seg_chars": 13,
+        "ai_keywords": 3,
+        "emotion_keywords": 1,
+        "tech_keywords": 4,
+        "keyword_density": 0.21,
+        "hook_text": "你知道webcoding吗 谁不知道呢 就是用AI写程序吗 那么说webcoding应该用什么呢 我听说cloud的效果是最好的 GPT好像也不错 等等等等 我怎么听说应该用cloudcode和codex 还有开源的opencode派什么的 好像也是AI编程用的 听说github上都有几十万个星星了 不对不对 你们说的都是老皇帝了 用superpowersopenspec最方便 这么多个名字都是什么跟什么呀",
+        "close_text": "我想写一个塞尔达而已了 到了那个时候 又会有多少新概念出现呢 我不知道 但是其实我一点也不担心 工具一年换三茬 底下这套结构是不变的 再火的东西 也不过是同一个老故事 加了点佐料 起了个新名字而已 老话说得好 书使得其还中 以硬无穷 感谢你能够看到这里 这里是成全老王 我们下期再见"
+      },
+      "created_at": "2026-08-10T23:21:17",
+      "duration_sec": 746.1,
+      "compressed": true,
+      "original_size_mb": 19.2,
+      "compressed_size_mb": 10.0,
+      "compression_ratio": 0.477,
+      "has_cover": true,
+      "cover_file": "cover.jpg"
     }
   ],
-  "updated_at": "2026-08-10T16:07:48"
+  "updated_at": "2026-08-10T23:22:45"
 }
